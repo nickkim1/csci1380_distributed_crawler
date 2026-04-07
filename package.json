@@ -1,0 +1,125 @@
+{
+  "name": "cs1380-stencil",
+  "version": "0.2.33",
+  "description": "A library for building distributed systems.",
+  "main": "distribution.js",
+  "useLibrary": false,
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-n": "^16.6.2",
+    "javascript-obfuscator": "^4.1.0",
+    "jest": "^27.4.7",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "test": "./scripts/test.sh",
+    "lint": "./scripts/lint.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@brown-ds/distribution": "^0.2.32",
+    "yargs": "^17.7.2"
+  },
+  "report": [
+    {
+      "milestone": "M1",
+      "hours": 10,
+      "loc": 300,
+      "dev": {
+        "cpu-no": 8,
+        "mem-gb": 16,
+        "ssd-gb": 512
+      },
+      "throughput": {
+        "dev": [14.6495],
+        "aws": [5.6415]
+      },
+      "latency": {
+        "dev": [0.0683],
+        "aws": [0.1773]
+      },
+      "dloc": -99
+    },
+    {
+      "milestone": "M2",
+      "hours": 10,
+      "loc": 300,
+      "dev": {
+        "cpu-no": 8,
+        "mem-gb": 16,
+        "ssd-gb": 512
+      },
+      "throughput": {
+        "dev": [0.9012],
+        "aws": [0.4845]
+      },
+      "latency": {
+        "dev": [0.8175],
+        "aws": [1.954]
+      },
+      "dloc": -99
+    },
+    {
+      "milestone": "M3",
+      "hours": 15,
+      "loc": 400,
+      "dev": {
+        "cpu-no": 8,
+        "mem-gb": 16,
+        "ssd-gb": 512
+      },
+      "throughput": {
+        "dev": [0.0584],
+        "aws": [0.0095]
+      },
+      "latency": {
+        "dev": [91.5783],
+        "aws": [146.2348]
+      },
+      "dloc": -99
+    },
+    {
+      "milestone": "M4",
+      "hours": 10,
+      "loc": 500,
+      "dev": {
+        "cpu-no": 8,
+        "mem-gb": 16,
+        "ssd-gb": 512
+      },
+      "throughput": {
+        "dev": [1.0286],
+        "aws": [0.0205]
+      },
+      "latency": {
+        "dev": [0.979],
+        "aws": [49.186]
+      },
+      "dloc": -99
+    },
+    {
+      "milestone": "M5",
+      "hours": 20,
+      "loc": 800,
+      "dev": {
+        "cpu-no": 8,
+        "mem-gb": 16,
+        "ssd-gb": 512
+      },
+      "throughput": {
+        "dev": [0.000125],
+        "aws": []
+      },
+      "latency": {
+        "dev": [8024.9660],
+        "aws": []
+      },
+      "dloc": -99
+    }
+  ]
+}
