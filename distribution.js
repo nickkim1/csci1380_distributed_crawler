@@ -37,10 +37,10 @@ function bootstrap(config) {
   distribution.local.routes = distributionLib.local.routes;
   distribution.local.status.spawn = distributionLib.local.status.spawn;
   distribution.local.status.stop = distributionLib.local.status.stop;
-  distribution.local.comm = distributionLib.local.comm;
-  distribution.node.start = distributionLib.node.start;
-  distribution.util.serialize = distributionLib.util.serialize;
-  distribution.util.deserialize = distributionLib.util.deserialize;
+  // distribution.local.comm = distributionLib.local.comm;
+  // distribution.node.start = distributionLib.node.start;
+  // distribution.util.serialize = distributionLib.util.serialize;
+  // distribution.util.deserialize = distributionLib.util.deserialize;
   // __end_M3_solution__
 
   for (const [key, service] of Object.entries(distribution.local)) {

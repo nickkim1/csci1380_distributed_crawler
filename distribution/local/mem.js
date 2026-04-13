@@ -31,7 +31,7 @@ function put(state, configuration, callback) {
   if (!callback) {
     callback = (e, v) => console.log('no callback provided');
   }
-  let [key, config] = buildKey(configuration);
+  let [key, config] = buildKey(configuration, state);
   key = key + config;
   kvstore[key] = state;
   return callback(null, state);
@@ -46,7 +46,7 @@ function append(state, configuration, callback) {
   if (!callback) {
     callback = (e, v) => console.log('no callback provided');
   }
-  const [rawKey, config] = buildKey(configuration);
+  const [rawKey, config] = buildKey(configuration, state);
   const key = rawKey + config;
   const existing = kvstore[key];
   const arr = Array.isArray(existing) ? existing : (existing ? [existing] : []);
