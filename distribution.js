@@ -34,7 +34,7 @@ function bootstrap(config) {
 
   // __start_M3_solution__
   distribution.util.wire.createRPC = distributionLib.util.wire.createRPC;
-  distribution.local.routes = distributionLib.local.routes;
+  // distribution.local.routes = distributionLib.local.routes;
   distribution.local.status.spawn = distributionLib.local.status.spawn;
   distribution.local.status.stop = distributionLib.local.status.stop;
   // distribution.local.comm = distributionLib.local.comm;

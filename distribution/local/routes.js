@@ -3,6 +3,7 @@
  * @typedef {string} ServiceName
  */
 const distribution = globalThis.distribution;
+const routesStore = new Map();
 
 /**
  * @param {ServiceName | {service: ServiceName, gid?: string}} configuration
@@ -13,21 +14,35 @@ function get(configuration, callback) {
   if (!callback) {
     callback = (e, v) => console.log('no callback provided');
   }
-  let group = distribution.local;
-  if (typeof configuration !== 'string') {
-    if ('gid' in configuration) {
-      group = distribution[configuration.gid];
+  if (!configuration) {
+    return callback(Error('no configuration provided'));
+  }
+
+  if (typeof configuration === 'string') {
+    configuration = {service: configuration};
+  }
+
+  const serviceName = configuration.service;
+  const gid = configuration.gid;
+
+  if (gid && gid !== 'local') {
+    const group = distribution[gid];
+    if (!group || !(serviceName in group)) {
+      return callback(Error(`service ${serviceName} not found`), null);
     }
-    configuration = configuration.service;
+    return callback(null, group[serviceName]);
   }
-  let ret = null;
-  let err = null;
-  if (configuration in group) {
-    ret = group[configuration];
-  } else {
-    err = Error(`service ${configuration} not found`);
+
+  if (routesStore.has(serviceName)) {
+    return callback(null, routesStore.get(serviceName));
   }
-  return callback(err, ret);
+
+  const rpc = globalThis.toLocal?.get(serviceName);
+  if (rpc) {
+    return callback(null, {call: rpc});
+  }
+
+  return callback(Error(`service ${serviceName} not found`), null);
 }
 
 /**
@@ -40,9 +55,8 @@ function put(service, configuration, callback) {
   if (!callback) {
     callback = (e, v) => console.log('no callback provided');
   }
-  const local = distribution.local;
-  local[configuration] = service;
-  return callback(null, null);
+  routesStore.set(configuration, service);
+  return callback(null, configuration);
 }
 
 /**
@@ -53,16 +67,9 @@ function rem(configuration, callback) {
   if (!callback) {
     callback = (e, v) => console.log('no callback provided');
   }
-  const local = distribution.local;
-  let ret = null;
-  let err = null;
-  if (configuration in local) {
-    ret = local[configuration];
-    delete local[configuration];
-  } else {
-    err = Error(`service ${configuration} not found`);
-  }
-  return callback(err, ret);
+  const ret = routesStore.get(configuration);
+  routesStore.delete(configuration);
+  return callback(null, ret);
 }
 
 module.exports = {get, put, rem};
