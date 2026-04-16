@@ -8,6 +8,7 @@
     "test": "test"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "eslint": "^8.55.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-n": "^16.6.2",
@@ -22,7 +23,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@brown-ds/distribution": "^0.2.32",
+    "@brown-ds/distribution": "^0.2.33",
     "yargs": "^17.7.2"
   },
   "report": [
@@ -36,12 +37,20 @@
         "ssd-gb": 512
       },
       "throughput": {
-        "dev": [14.6495],
-        "aws": [5.6415]
+        "dev": [
+          14.6495
+        ],
+        "aws": [
+          5.6415
+        ]
       },
       "latency": {
-        "dev": [0.0683],
-        "aws": [0.1773]
+        "dev": [
+          0.0683
+        ],
+        "aws": [
+          0.1773
+        ]
       },
       "dloc": -99
     },
@@ -55,12 +64,20 @@
         "ssd-gb": 512
       },
       "throughput": {
-        "dev": [0.9012],
-        "aws": [0.4845]
+        "dev": [
+          0.9012
+        ],
+        "aws": [
+          0.4845
+        ]
       },
       "latency": {
-        "dev": [0.8175],
-        "aws": [1.954]
+        "dev": [
+          0.8175
+        ],
+        "aws": [
+          1.954
+        ]
       },
       "dloc": -99
     },
@@ -74,12 +91,20 @@
         "ssd-gb": 512
       },
       "throughput": {
-        "dev": [0.0584],
-        "aws": [0.0095]
+        "dev": [
+          0.0584
+        ],
+        "aws": [
+          0.0095
+        ]
       },
       "latency": {
-        "dev": [91.5783],
-        "aws": [146.2348]
+        "dev": [
+          91.5783
+        ],
+        "aws": [
+          146.2348
+        ]
       },
       "dloc": -99
     },
@@ -93,12 +118,20 @@
         "ssd-gb": 512
       },
       "throughput": {
-        "dev": [1.0286],
-        "aws": [0.0205]
+        "dev": [
+          1.0286
+        ],
+        "aws": [
+          0.0205
+        ]
       },
       "latency": {
-        "dev": [0.979],
-        "aws": [49.186]
+        "dev": [
+          0.979
+        ],
+        "aws": [
+          49.186
+        ]
       },
       "dloc": -99
     },
@@ -112,11 +145,15 @@
         "ssd-gb": 512
       },
       "throughput": {
-        "dev": [0.000125],
+        "dev": [
+          0.000125
+        ],
         "aws": []
       },
       "latency": {
-        "dev": [8024.9660],
+        "dev": [
+          8024.966
+        ],
         "aws": []
       },
       "dloc": -99
