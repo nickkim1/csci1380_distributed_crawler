@@ -22,6 +22,53 @@ const STOPWORDS = new Set(
     .filter(Boolean),
 );
 
+const ASSET_EXT_RE = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map|pdf|zip|gz|mp3|mp4|avi|mov)(\?|#|$)/i;
+
+/**
+ * @param {string} maybeURL
+ * @returns {boolean}
+ */
+function shouldCrawlURL(maybeURL) {
+  if (!maybeURL || typeof maybeURL !== "string") {
+    return false;
+  }
+  try {
+    const parsed = new globalThis.URL(maybeURL);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return false;
+    }
+    if (ASSET_EXT_RE.test(parsed.pathname)) {
+      return false;
+    }
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
+/**
+ * @param {string} maybeURL
+ * @returns {boolean}
+ */
+function isBookDetailURL(maybeURL) {
+  if (!maybeURL || typeof maybeURL !== "string") {
+    return false;
+  }
+  try {
+    const parsed = new globalThis.URL(maybeURL);
+    const pathName = parsed.pathname || "";
+    if (!pathName.includes("/catalogue/")) {
+      return false;
+    }
+    if (pathName.includes("/catalogue/category/")) {
+      return false;
+    }
+    return /_[0-9]+\/index\.html$/i.test(pathName);
+  } catch (_error) {
+    return false;
+  }
+}
+
 /**
  * @param {string} url
  * @returns {string}
@@ -121,7 +168,10 @@ function extractURLs(baseURL, html) {
   while (match) {
     const href = match[1];
     try {
-      links.add(new URL(href, baseURL).href);
+      const next = new globalThis.URL(href, baseURL).href;
+      if (shouldCrawlURL(next)) {
+        links.add(next);
+      }
     } catch (e) {
       // Ignore malformed links.
     }
@@ -209,6 +259,9 @@ function crawler(config) {
   function exec(configuration, callback) {
     // Seed URLs are treated as the input dataset for the first MR job.
     const urls = Array.isArray(configuration?.urls) ? configuration.urls : [];
+    const maxPages = Number.isInteger(configuration?.maxPages)
+      ? Math.max(1, Number(configuration.maxPages))
+      : 200;
     if (urls.length === 0) {
       return callback(
         Error("crawler.exec: configuration.urls must be a non-empty array"),
@@ -218,6 +271,21 @@ function crawler(config) {
     const runId = id.getID({ urls, now: Date.now() }).slice(0, 12);
     const crawlDataGid = context.gid;
     const indexGid = configuration.indexGid || `index_${context.gid}`;
+
+    const crawlStats = {
+      seeds: urls.length,
+      mrDocs: 0,
+      fallbackUsed: false,
+      fallbackDocs: 0,
+      pagesFetched: 0,
+      bookDocs: 0,
+      docsWithTerms: 0,
+      sampleDocs: [],
+      crawlMs: 0,
+      indexMs: 0,
+    };
+
+    const crawlStart = Date.now();
 
     const seedKeys = urls.map((u, i) => `seed_${runId}_${i}`);
     let pendingSeeds = seedKeys.length;
@@ -251,6 +319,9 @@ function crawler(config) {
         {
           keys: seedKeys,
           map: (_key, url) => {
+            if (!shouldCrawlURL(url)) {
+              return [];
+            }
             const html = fetchHTML(url);
             if (!html) {
               return [];
@@ -284,161 +355,253 @@ function crawler(config) {
           if (crawlErr) {
             return callback(crawlErr, null);
           }
-          const crawlDocs = (crawlDocsRaw || []).filter(Boolean);
+          let crawlDocs = (crawlDocsRaw || []).filter(
+            (doc) =>
+              doc &&
+              doc.key &&
+              doc.value &&
+              doc.value.url &&
+              isBookDetailURL(doc.value.url),
+          );
+          crawlStats.mrDocs = crawlDocs.length;
+
           if (crawlDocs.length === 0) {
-            return callback(null, { docs: 0, terms: 0, indexGid });
+            crawlStats.fallbackUsed = true;
+            crawlDocs = fallbackCrawl(urls, maxPages);
+            crawlStats.fallbackDocs = crawlDocs.length;
           }
 
-          const docKeys = crawlDocs.map((doc) => doc.key);
-          let pendingDocs = crawlDocs.length;
-          let docFailure = false;
+          crawlStats.bookDocs = crawlDocs.length;
+          crawlStats.crawlMs = Date.now() - crawlStart;
 
-          const afterDocStore = (err) => {
-            if (docFailure) {
-              return;
-            }
-            if (err) {
-              docFailure = true;
-              return callback(err, null);
-            }
-            pendingDocs--;
-            if (pendingDocs === 0) {
-              runIndexMR(docKeys);
-            }
-          };
+          if (crawlDocs.length === 0) {
+            return callback(null, {
+              docs: 0,
+              terms: 0,
+              indexGid,
+              crawlStats,
+            });
+          }
 
-          crawlDocs.forEach((doc) => {
-            // Stage MR#1 output as MR#2 input under the crawl gid.
-            distribution[context.gid].store.put(
-              doc.value,
-              { key: doc.key, gid: crawlDataGid },
-              afterDocStore,
-            );
-          });
+          stageDocsAndIndex(crawlDocs);
         },
       );
     }
 
-    function runIndexMR(docKeys) {
-      // MR #2: convert docs into an inverted index keyed by term/ngram.
-      distribution[context.gid].mr.exec(
-        {
-          keys: docKeys,
-          map: (_docKey, doc) => {
-            const url = doc?.url;
-            const text = doc?.text || "";
-            if (!url) {
-              return [];
-            }
+    /**
+     * @param {Array<{key: string, value: {url: string, text: string}}>} crawlDocs
+     */
+    function stageDocsAndIndex(crawlDocs) {
+      const docKeys = crawlDocs.map((doc) => doc.key);
+      let pendingDocs = crawlDocs.length;
+      let docFailure = false;
 
-            const terms = makeNgrams(normalizeTerms(text));
-            const counts = new Map();
-            terms.forEach((t) => counts.set(t, (counts.get(t) || 0) + 1));
+      const afterDocStore = (err) => {
+        if (docFailure) {
+          return;
+        }
+        if (err) {
+          docFailure = true;
+          return callback(err, null);
+        }
+        pendingDocs--;
+        if (pendingDocs === 0) {
+          runIndexLocal(crawlDocs, docKeys);
+        }
+      };
 
-            return Array.from(counts.entries()).map(([term, count]) => ({
-              [term]: { url, count },
-            }));
-          },
-          reduce: (term, values) => {
-            // Merge per-doc counts into ranked postings for this term.
-            const perURL = new Map();
-            (values || []).forEach((entry) => {
-              if (!entry || !entry.url) {
-                return;
-              }
-              const current = perURL.get(entry.url) || 0;
-              perURL.set(entry.url, current + (entry.count || 0));
-            });
+      crawlDocs.forEach((doc) => {
+        distribution[context.gid].store.put(
+          doc.value,
+          { key: doc.key, gid: crawlDataGid },
+          afterDocStore,
+        );
+      });
+    }
 
-            const postings = Array.from(perURL.entries())
-              .map(([url, count]) => ({ url, count }))
-              .sort((a, b) => b.count - a.count || a.url.localeCompare(b.url));
+    /**
+     * Fallback local crawl if MR crawl yields no docs.
+     * @param {string[]} seedURLs
+     * @param {number} pageBudget
+     * @returns {Array<{key: string, value: {url: string, text: string}}>} docs
+     */
+    function fallbackCrawl(seedURLs, pageBudget) {
+      const queue = [];
+      const visited = new Set();
+      const docs = [];
+      const crawlBudget = Math.max(pageBudget * 20, 4000);
 
-            return { key: term, value: postings };
-          },
-        },
-        (idxErr, invertedRaw) => {
-          if (idxErr) {
-            return callback(idxErr, null);
-          }
-          const inverted = (invertedRaw || []).filter(Boolean);
-          if (inverted.length === 0) {
-            return callback(null, { docs: docKeys.length, terms: 0, indexGid });
-          }
+      seedURLs.forEach((url) => {
+        if (shouldCrawlURL(url) && !visited.has(url)) {
+          queue.push(url);
+          visited.add(url);
+        }
+      });
 
-          distribution.local.groups.get(context.gid, (groupErr, group) => {
-            if (groupErr) {
-              return callback(groupErr, null);
-            }
+      while (
+        queue.length > 0 &&
+        docs.length < pageBudget &&
+        crawlStats.pagesFetched < crawlBudget
+      ) {
+        const current = queue.shift();
+        const html = fetchHTML(current);
+        if (!html) {
+          continue;
+        }
 
-            const nids = Object.keys(group);
-            if (nids.length === 0) {
-              return callback(Error("crawler.exec: empty group"), null);
-            }
+        crawlStats.pagesFetched++;
 
-            // Build one term->postings object per destination node.
-            /** @type {Object.<string, Object.<string, any[]>>} */
-            const shardByNid = {};
-            inverted.forEach((row) => {
-              const term = row.key;
-              if (!term) {
-                return;
-              }
-              const nid = context.hash(id.getID(term), nids);
-              if (!shardByNid[nid]) {
-                shardByNid[nid] = {};
-              }
-              shardByNid[nid][term] = row.value;
-            });
-
-            const targetNids = Object.keys(shardByNid);
-            let pendingShards = targetNids.length;
-            let shardFailure = false;
-
-            if (pendingShards === 0) {
-              return callback(null, {
-                docs: docKeys.length,
-                terms: 0,
-                indexGid,
-                files: {},
-              });
-            }
-
-            const files = {};
-            targetNids.forEach((nid) => {
-              const node = group[nid];
-              const sid = id.getSID(node);
-              const fileKey = `inv_${indexGid}_${sid}`;
-              files[sid] = fileKey;
-
-              // Persist one shard file on each node by targeting local.store directly.
-              distribution.local.comm.send(
-                [shardByNid[nid], { key: fileKey, gid: indexGid }],
-                { node, service: "store", method: "put", gid: "local" },
-                (persistErr) => {
-                  if (shardFailure) {
-                    return;
-                  }
-                  if (persistErr) {
-                    shardFailure = true;
-                    return callback(persistErr, null);
-                  }
-
-                  pendingShards--;
-                  if (pendingShards === 0) {
-                    return callback(null, {
-                      docs: docKeys.length,
-                      terms: inverted.length,
-                      indexGid,
-                      files,
-                    });
-                  }
-                },
-              );
-            });
+        if (isBookDetailURL(current)) {
+          docs.push({
+            key: id.getID(current),
+            value: {
+              url: current,
+              text: htmlToText(html),
+            },
           });
-        },
+        }
+
+        const discovered = extractURLs(current, html);
+        for (const next of discovered) {
+          if (!visited.has(next) && shouldCrawlURL(next)) {
+            visited.add(next);
+            queue.push(next);
+            if (visited.size > pageBudget * 10) {
+              break;
+            }
+          }
+        }
+      }
+
+      return docs;
+    }
+
+    function runIndexLocal(crawlDocs, docKeys) {
+      const indexStart = Date.now();
+      /** @type {Map<string, Map<string, number>>} */
+      const postingsByTerm = new Map();
+
+      crawlDocs.forEach((doc, idx) => {
+        const url = doc?.value?.url;
+        const text = doc?.value?.text || "";
+        if (!url) {
+          return;
+        }
+
+        const terms = makeNgrams(normalizeTerms(text));
+        const counts = new Map();
+        terms.forEach((term) => counts.set(term, (counts.get(term) || 0) + 1));
+
+        if (counts.size > 0) {
+          crawlStats.docsWithTerms++;
+        }
+
+        if (idx < 3) {
+          crawlStats.sampleDocs.push({
+            url,
+            textChars: text.length,
+            uniqueTerms: counts.size,
+            topTerms: Array.from(counts.entries())
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5),
+          });
+        }
+
+        counts.forEach((count, term) => {
+          const perURL = postingsByTerm.get(term) || new Map();
+          perURL.set(url, (perURL.get(url) || 0) + count);
+          postingsByTerm.set(term, perURL);
+        });
+      });
+
+      const inverted = Array.from(postingsByTerm.entries()).map(
+        ([term, perURL]) => ({
+          key: term,
+          value: Array.from(perURL.entries())
+            .map(([url, count]) => ({ url, count }))
+            .sort((a, b) => b.count - a.count || a.url.localeCompare(b.url)),
+        }),
       );
+
+      if (inverted.length === 0) {
+        crawlStats.indexMs = Date.now() - indexStart;
+        return callback(null, {
+          docs: docKeys.length,
+          terms: 0,
+          indexGid,
+          crawlStats,
+        });
+      }
+
+      distribution.local.groups.get(context.gid, (groupErr, group) => {
+        if (groupErr) {
+          return callback(groupErr, null);
+        }
+
+        const nids = Object.keys(group);
+        if (nids.length === 0) {
+          return callback(Error("crawler.exec: empty group"), null);
+        }
+
+        /** @type {Object.<string, Object.<string, any[]>>} */
+        const shardByNid = {};
+        inverted.forEach((row) => {
+          const term = row.key;
+          const nid = context.hash(id.getID(term), nids);
+          if (!shardByNid[nid]) {
+            shardByNid[nid] = {};
+          }
+          shardByNid[nid][term] = row.value;
+        });
+
+        const targetNids = Object.keys(shardByNid);
+        let pendingShards = targetNids.length;
+        let shardFailure = false;
+
+        if (pendingShards === 0) {
+          return callback(null, {
+            docs: docKeys.length,
+            terms: 0,
+            indexGid,
+            files: {},
+            crawlStats,
+          });
+        }
+
+        const files = {};
+        targetNids.forEach((nid) => {
+          const node = group[nid];
+          const sid = id.getSID(node);
+          const fileKey = `inv_${indexGid}_${sid}`;
+          files[sid] = fileKey;
+
+          distribution.local.comm.send(
+            [shardByNid[nid], { key: fileKey, gid: indexGid }],
+            { node, service: "store", method: "put", gid: "local" },
+            (persistErr) => {
+              if (shardFailure) {
+                return;
+              }
+              if (persistErr) {
+                shardFailure = true;
+                return callback(persistErr, null);
+              }
+
+              pendingShards--;
+              if (pendingShards === 0) {
+                crawlStats.indexMs = Date.now() - indexStart;
+                return callback(null, {
+                  docs: docKeys.length,
+                  terms: inverted.length,
+                  indexGid,
+                  files,
+                  crawlStats,
+                });
+              }
+            },
+          );
+        });
+      });
     }
   }
 

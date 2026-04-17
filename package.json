@@ -18,7 +18,8 @@
   },
   "scripts": {
     "test": "./scripts/test.sh",
-    "lint": "./scripts/lint.sh"
+    "lint": "./scripts/lint.sh",
+    "m6:e2e-sandbox3": "node scripts/m6_e2e_sandbox3_large.js"
   },
   "author": "",
   "license": "ISC",
