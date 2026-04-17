@@ -16,28 +16,34 @@ mr        A map-reduce implementation            exec
 */
 
 /* Comm Service */
-const comm = require('./comm.js');
+const comm = require("./comm.js");
 
 /* Groups Service */
-const groups = require('./groups.js');
+const groups = require("./groups.js");
 
 /* Routes Service */
-const routes = require('./routes.js');
+const routes = require("./routes.js");
 
 /* Status Service */
-const status = require('./status.js');
+const status = require("./status.js");
 
 /* Gossip Service */
-const gossip = require('./gossip.js');
+const gossip = require("./gossip.js");
 
 /* Mem Service */
-const mem = require('./mem.js');
+const mem = require("./mem.js");
 
 /* Store Service */
-const store = require('./store.js');
+const store = require("./store.js");
 
 /* Map-Reduce Service */
-const mr = require('./mr.js');
+const mr = require("./mr.js");
+
+/* Indexing Service */
+const indexer = require("./indexer.js");
+
+/* Query Service */
+const query = require("./query.js");
 
 /**
  * @typedef {Object} GroupServices
@@ -49,6 +55,8 @@ const mr = require('./mr.js');
  * @property {import("./mem.js").Mem} mem
  * @property {import("./mem.js").Mem} store
  * @property {import("./mr.js").Mr} mr
+ * @property {import("./indexer.js").Indexer} indexer
+ * @property {import("./query.js").QueryService} query
  *
  * @param {Config} config
  * @returns {GroupServices}
@@ -63,6 +71,8 @@ function setup(config) {
     mem: mem(config),
     store: store(config),
     mr: mr(config),
+    indexer: indexer(config),
+    query: query(config),
   };
 }
 
@@ -75,5 +85,7 @@ module.exports = {
   mem,
   store,
   mr,
+  indexer,
+  query,
   setup,
 };
