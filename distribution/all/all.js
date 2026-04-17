@@ -39,6 +39,12 @@ const store = require('./store.js');
 /* Map-Reduce Service */
 const mr = require('./mr.js');
 
+/* Crawler Service */
+const crawler = require('./crawler.js');
+
+/* Query Service */
+const query = require('./query.js');
+
 /**
  * @typedef {Object} GroupServices
  * @property {import("./comm.js").Comm} comm
@@ -49,6 +55,8 @@ const mr = require('./mr.js');
  * @property {import("./mem.js").Mem} mem
  * @property {import("./mem.js").Mem} store
  * @property {import("./mr.js").Mr} mr
+ * @property {{exec: Function}} crawler
+ * @property {{exec: Function}} query
  *
  * @param {Config} config
  * @returns {GroupServices}
@@ -63,6 +71,8 @@ function setup(config) {
     mem: mem(config),
     store: store(config),
     mr: mr(config),
+    crawler: crawler(config),
+    query: query(config),
   };
 }
 
@@ -75,5 +85,7 @@ module.exports = {
   mem,
   store,
   mr,
+  crawler,
+  query,
   setup,
 };

@@ -6,17 +6,141 @@
  */
 
 const distribution = globalThis.distribution;
+const id = distribution.util.id;
+const { spawnSync } = require("node:child_process");
+const fs = require("node:fs");
+const path = require("node:path");
+
+const STOPWORDS_PATH = path.join(
+  __dirname,
+  "../../non-distribution/d/stopwords.txt",
+);
+const STOPWORDS = new Set(
+  (fs.existsSync(STOPWORDS_PATH) ? fs.readFileSync(STOPWORDS_PATH, "utf8") : "")
+    .split(/\r?\n/)
+    .map((w) => w.trim())
+    .filter(Boolean),
+);
+
+/**
+ * @param {string} url
+ * @returns {string}
+ */
+function fetchHTML(url) {
+  // MR map/reduce functions are synchronous in this codebase, so fetch inline.
+  const out = spawnSync(
+    "curl",
+    ["-skL", "--retry", "2", "--retry-delay", "1", "--retry-connrefused", url],
+    { encoding: "utf8" },
+  );
+  if (out.status !== 0 || !out.stdout) {
+    return "";
+  }
+  return out.stdout;
+}
+
+/**
+ * @param {string} html
+ * @returns {string}
+ */
+function htmlToText(html) {
+  // Keep extraction lightweight: strip tags/scripts/styles and normalize whitespace.
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * @param {string} word
+ * @returns {string}
+ */
+function stem(word) {
+  // Small stemmer to stay dependency-light while still merging common inflections.
+  if (word.length > 4 && word.endsWith("ing")) {
+    return word.slice(0, -3);
+  }
+  if (word.length > 3 && (word.endsWith("ed") || word.endsWith("es"))) {
+    return word.slice(0, -2);
+  }
+  if (word.length > 2 && word.endsWith("s")) {
+    return word.slice(0, -1);
+  }
+  return word;
+}
+
+/**
+ * @param {string} text
+ * @returns {string[]}
+ */
+function normalizeTerms(text) {
+  // Match the non-distributed flow: lowercase, alpha-only tokens, stopword removal, stem.
+  return text
+    .toLowerCase()
+    .replace(/[^a-z]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0 && !STOPWORDS.has(w))
+    .map(stem)
+    .filter(Boolean);
+}
+
+/**
+ * @param {string[]} terms
+ * @returns {string[]}
+ */
+function makeNgrams(terms) {
+  // Emit 1/2/3-grams so querying can match phrases as in the original indexer.
+  const out = [];
+  for (let i = 0; i < terms.length; i++) {
+    out.push(terms[i]);
+    if (i + 1 < terms.length) {
+      out.push(`${terms[i]} ${terms[i + 1]}`);
+    }
+    if (i + 2 < terms.length) {
+      out.push(`${terms[i]} ${terms[i + 1]} ${terms[i + 2]}`);
+    }
+  }
+  return out;
+}
+
+/**
+ * @param {string} baseURL
+ * @param {string} html
+ * @returns {string[]}
+ */
+function extractURLs(baseURL, html) {
+  // Resolve relative links against the source page and deduplicate on a set.
+  const links = new Set([baseURL]);
+  const re = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
+  let match = re.exec(html);
+  while (match) {
+    const href = match[1];
+    try {
+      links.add(new URL(href, baseURL).href);
+    } catch (e) {
+      // Ignore malformed links.
+    }
+    match = re.exec(html);
+  }
+  return Array.from(links);
+}
 
 /**
  * @typedef {Object} CrawlerConfig
  * This should probably just be a struct that is of the form:
- *  { urls: [] } 
+ *  { urls: [] }
  * where [] is just a list of seed URLs to start crawling.
  */
 
 function crawler(config) {
   const context = {
     gid: config.gid || "all",
+    hash: config.hash || id.naiveHash,
   };
 
   /**
@@ -69,7 +193,7 @@ function crawler(config) {
    * 2) shuffle - groups by hash(term) and sends to appropriate node via consistent hashing.
    * 3) reducer: ( key : term, value : [<outgoing url> <count of term in outgoing url>, ...] ) ->
    *    { key : term, value : sorted([<outgoing url> <count of term in outgoing url>, ...]) }
-   *    
+   *
    * Query service:
    *    The end of this second reducer stage should be post-processed such that each node stores a small text
    *    file as an inverted index that we can subsequently query. A separate query service will chunk
@@ -79,8 +203,246 @@ function crawler(config) {
    *    {apple : ...}, {me : ... }, etc. ). Then the query service can collect the relevant results at
    *    the end, sort them, and present them back to the user. I guess you can retrofit the query service
    *    to MR but that defeats the point, querying isn't a data processing service it's supposed to be fast
-   *    and it's a read-only (not write) task which MR isn't. 
-   * 
+   *    and it's a read-only (not write) task which MR isn't.
+   *
    */
-  function exec(configuration, callback) {}
+  function exec(configuration, callback) {
+    // Seed URLs are treated as the input dataset for the first MR job.
+    const urls = Array.isArray(configuration?.urls) ? configuration.urls : [];
+    if (urls.length === 0) {
+      return callback(
+        Error("crawler.exec: configuration.urls must be a non-empty array"),
+      );
+    }
+
+    const runId = id.getID({ urls, now: Date.now() }).slice(0, 12);
+    const crawlDataGid = context.gid;
+    const indexGid = configuration.indexGid || `index_${context.gid}`;
+
+    const seedKeys = urls.map((u, i) => `seed_${runId}_${i}`);
+    let pendingSeeds = seedKeys.length;
+    let failed = false;
+
+    const onSeedStored = (err) => {
+      if (failed) {
+        return;
+      }
+      if (err) {
+        failed = true;
+        return callback(err, null);
+      }
+      pendingSeeds--;
+      if (pendingSeeds === 0) {
+        runCrawlMR();
+      }
+    };
+
+    seedKeys.forEach((key, i) => {
+      distribution[context.gid].store.put(
+        urls[i],
+        { key, gid: crawlDataGid },
+        onSeedStored,
+      );
+    });
+
+    function runCrawlMR() {
+      // MR #1: discover URLs (map) and materialize crawlable docs {url, text} (reduce).
+      distribution[context.gid].mr.exec(
+        {
+          keys: seedKeys,
+          map: (_key, url) => {
+            const html = fetchHTML(url);
+            if (!html) {
+              return [];
+            }
+            const discovered = extractURLs(url, html);
+            return discovered.map((nextURL) => ({
+              [id.getID(nextURL)]: nextURL,
+            }));
+          },
+          reduce: (_urlHash, values) => {
+            // Shuffle already groups by URL hash; reduce picks one URL and fetches page text.
+            const unique = Array.from(new Set(values || []));
+            const chosen = unique[0];
+            if (!chosen) {
+              return null;
+            }
+            const html = fetchHTML(chosen);
+            if (!html) {
+              return null;
+            }
+            return {
+              key: id.getID(chosen),
+              value: {
+                url: chosen,
+                text: htmlToText(html),
+              },
+            };
+          },
+        },
+        (crawlErr, crawlDocsRaw) => {
+          if (crawlErr) {
+            return callback(crawlErr, null);
+          }
+          const crawlDocs = (crawlDocsRaw || []).filter(Boolean);
+          if (crawlDocs.length === 0) {
+            return callback(null, { docs: 0, terms: 0, indexGid });
+          }
+
+          const docKeys = crawlDocs.map((doc) => doc.key);
+          let pendingDocs = crawlDocs.length;
+          let docFailure = false;
+
+          const afterDocStore = (err) => {
+            if (docFailure) {
+              return;
+            }
+            if (err) {
+              docFailure = true;
+              return callback(err, null);
+            }
+            pendingDocs--;
+            if (pendingDocs === 0) {
+              runIndexMR(docKeys);
+            }
+          };
+
+          crawlDocs.forEach((doc) => {
+            // Stage MR#1 output as MR#2 input under the crawl gid.
+            distribution[context.gid].store.put(
+              doc.value,
+              { key: doc.key, gid: crawlDataGid },
+              afterDocStore,
+            );
+          });
+        },
+      );
+    }
+
+    function runIndexMR(docKeys) {
+      // MR #2: convert docs into an inverted index keyed by term/ngram.
+      distribution[context.gid].mr.exec(
+        {
+          keys: docKeys,
+          map: (_docKey, doc) => {
+            const url = doc?.url;
+            const text = doc?.text || "";
+            if (!url) {
+              return [];
+            }
+
+            const terms = makeNgrams(normalizeTerms(text));
+            const counts = new Map();
+            terms.forEach((t) => counts.set(t, (counts.get(t) || 0) + 1));
+
+            return Array.from(counts.entries()).map(([term, count]) => ({
+              [term]: { url, count },
+            }));
+          },
+          reduce: (term, values) => {
+            // Merge per-doc counts into ranked postings for this term.
+            const perURL = new Map();
+            (values || []).forEach((entry) => {
+              if (!entry || !entry.url) {
+                return;
+              }
+              const current = perURL.get(entry.url) || 0;
+              perURL.set(entry.url, current + (entry.count || 0));
+            });
+
+            const postings = Array.from(perURL.entries())
+              .map(([url, count]) => ({ url, count }))
+              .sort((a, b) => b.count - a.count || a.url.localeCompare(b.url));
+
+            return { key: term, value: postings };
+          },
+        },
+        (idxErr, invertedRaw) => {
+          if (idxErr) {
+            return callback(idxErr, null);
+          }
+          const inverted = (invertedRaw || []).filter(Boolean);
+          if (inverted.length === 0) {
+            return callback(null, { docs: docKeys.length, terms: 0, indexGid });
+          }
+
+          distribution.local.groups.get(context.gid, (groupErr, group) => {
+            if (groupErr) {
+              return callback(groupErr, null);
+            }
+
+            const nids = Object.keys(group);
+            if (nids.length === 0) {
+              return callback(Error("crawler.exec: empty group"), null);
+            }
+
+            // Build one term->postings object per destination node.
+            /** @type {Object.<string, Object.<string, any[]>>} */
+            const shardByNid = {};
+            inverted.forEach((row) => {
+              const term = row.key;
+              if (!term) {
+                return;
+              }
+              const nid = context.hash(id.getID(term), nids);
+              if (!shardByNid[nid]) {
+                shardByNid[nid] = {};
+              }
+              shardByNid[nid][term] = row.value;
+            });
+
+            const targetNids = Object.keys(shardByNid);
+            let pendingShards = targetNids.length;
+            let shardFailure = false;
+
+            if (pendingShards === 0) {
+              return callback(null, {
+                docs: docKeys.length,
+                terms: 0,
+                indexGid,
+                files: {},
+              });
+            }
+
+            const files = {};
+            targetNids.forEach((nid) => {
+              const node = group[nid];
+              const sid = id.getSID(node);
+              const fileKey = `inv_${indexGid}_${sid}`;
+              files[sid] = fileKey;
+
+              // Persist one shard file on each node by targeting local.store directly.
+              distribution.local.comm.send(
+                [shardByNid[nid], { key: fileKey, gid: indexGid }],
+                { node, service: "store", method: "put", gid: "local" },
+                (persistErr) => {
+                  if (shardFailure) {
+                    return;
+                  }
+                  if (persistErr) {
+                    shardFailure = true;
+                    return callback(persistErr, null);
+                  }
+
+                  pendingShards--;
+                  if (pendingShards === 0) {
+                    return callback(null, {
+                      docs: docKeys.length,
+                      terms: inverted.length,
+                      indexGid,
+                      files,
+                    });
+                  }
+                },
+              );
+            });
+          });
+        },
+      );
+    }
+  }
+
+  return { exec };
 }
+
+module.exports = crawler;
