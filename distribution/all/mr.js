@@ -106,7 +106,8 @@ function mr(config) {
         let pendingKeys = keysPartition.length;
         keysPartition.forEach((key) => {
           distribution[gid].store.get(key, (e, v) => {
-            if (!e) {
+            const hasErr = e && (e instanceof Error || (typeof e === 'object' && Object.keys(e).length > 0));
+            if (!hasErr) {
               const mapped = this.mapper(key, v) || [];
               out.push(...mapped);
             }
@@ -157,7 +158,8 @@ function mr(config) {
             vals.forEach((val) => {
               pendingAppends++;
               distribution[gid].mem.append(val, {key: key, gid: `${mrID}_shfl`}, (appendErr) => {
-                if (appendErr) return finishShuffle(appendErr);
+                const hasAppendErr = appendErr && (appendErr instanceof Error || (typeof appendErr === 'object' && Object.keys(appendErr).length > 0));
+                if (hasAppendErr) return finishShuffle(appendErr);
                 pendingAppends--;
                 if (pendingAppends === 0) {
                   finishShuffle(null);
@@ -199,7 +201,8 @@ function mr(config) {
           let pendingKeys = uniqueKeys.length;
           uniqueKeys.forEach((keyName) => {
             distribution.local.mem.get({key: keyName, gid: `${mrID}_shfl`}, (memErr, values) => {
-              if (!memErr && values) {
+              const hasMemErr = memErr && (memErr instanceof Error || (typeof memErr === 'object' && Object.keys(memErr).length > 0));
+              if (!hasMemErr && values) {
                 out.push(this.reducer(keyName, values));
               }
               pendingKeys--;

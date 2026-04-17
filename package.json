@@ -18,7 +18,9 @@
   },
   "scripts": {
     "test": "./scripts/test.sh",
-    "lint": "./scripts/lint.sh"
+    "lint": "./scripts/lint.sh",
+    "m6:local": "node m6/run-local.js",
+    "m6:query": "node m6/query.js"
   },
   "author": "",
   "license": "ISC",

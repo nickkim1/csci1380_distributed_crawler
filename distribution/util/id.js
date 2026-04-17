@@ -91,7 +91,7 @@ const consistentHash = (kid, nids) => {
 
 /** @type { Hasher } */
 const rendezvousHash = (kid, nids) => {
-  let maxHashNum = -1n;
+  let maxHashNum = BigInt(-1);
   let bestNid = nids[0];
 
   for (const nid of nids) {
