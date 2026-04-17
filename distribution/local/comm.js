@@ -50,29 +50,69 @@ function send(message, remote, callback) {
     },
   };
 
-  const req = http.request(options, (res) => {
-    let data = '';
+  const maxAttempts = 3;
+  const retryableCodes = new Set([
+    'ECONNRESET',
+    'EPIPE',
+    'ECONNREFUSED',
+    'ETIMEDOUT',
+  ]);
 
-    res.on('data', (chunk) => {
-      data += chunk;
+  /**
+   * @param {number} attempt
+   */
+  const sendAttempt = (attempt) => {
+    let settled = false;
+    const req = http.request(options, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        try {
+          const parsed = util.deserialize(data);
+          return callback(...parsed);
+        } catch (e) {
+          return callback(e, null);
+        }
+      });
     });
 
-    res.on('end', () => {
-      try {
-        const parsed = util.deserialize(data);
-        return callback(...parsed);
-      } catch (e) {
-        return callback(e, null);
+    req.setTimeout(15000, () => {
+      req.destroy(Object.assign(new Error('request timeout'), {code: 'ETIMEDOUT'}));
+    });
+
+    req.on('error', (err) => {
+      if (settled) {
+        return;
       }
+
+      const canRetry =
+        attempt < maxAttempts &&
+        err &&
+        typeof err === 'object' &&
+        retryableCodes.has(err.code);
+
+      if (canRetry) {
+        const delayMs = 25 * attempt;
+        return setTimeout(() => sendAttempt(attempt + 1), delayMs);
+      }
+
+      settled = true;
+      callback(err, null);
     });
-  });
 
-  req.on('error', (err) => {
-    callback(err, null);
-  });
+    req.write(payload);
+    req.end();
+  };
 
-  req.write(payload);
-  req.end();
+  sendAttempt(1);
 }
 
 module.exports = {send};

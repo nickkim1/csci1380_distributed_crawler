@@ -18,6 +18,7 @@ const distribution = makeDistribution();
 const id = distribution.util.id;
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const argv = process.argv.slice(2);
 
@@ -44,7 +45,7 @@ const seed =
 const gid = readFlag("gid") || "sandbox3";
 const indexGid = readFlag("indexGid") || `index_${gid}`;
 const maxDepth = readNumber("maxDepth", 2);
-const maxPages = readNumber("maxPages", 1000);
+const pageBudget = readNumber("pageBudget", readNumber("maxPages", 1000));
 const limit = readNumber("limit", 10);
 const refreshCache = readFlag("refreshCache") === "true";
 const cacheFile =
@@ -76,11 +77,19 @@ function loadCache() {
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
+    const raw = fs.readFileSync(cacheFile);
+    const text = cacheFile.endsWith(".gz")
+      ? zlib.gunzipSync(raw).toString("utf8")
+      : raw.toString("utf8");
+    const parsed = JSON.parse(text);
     if (!parsed || typeof parsed !== "object") {
       return null;
     }
-    if (parsed.seed !== seed || parsed.gid !== gid || !parsed.shardsBySid) {
+    if (
+      parsed.seed !== seed ||
+      parsed.gid !== gid ||
+      (!parsed.shardsBySid && !parsed.shardsBySidPacked)
+    ) {
       return null;
     }
     return parsed;
@@ -89,17 +98,69 @@ function loadCache() {
   }
 }
 
+function packShardsForCache(shardsBySid) {
+  const packed = {};
+  Object.entries(shardsBySid || {}).forEach(([sid, shard]) => {
+    const terms = [];
+    Object.entries(shard || {}).forEach(([term, postings]) => {
+      const rows = Array.isArray(postings)
+        ? postings
+            .filter((row) => row && typeof row.url === "string")
+            .map((row) => [row.url, Number(row.count || 0)])
+        : [];
+      if (rows.length > 0) {
+        terms.push([term, rows]);
+      }
+    });
+    packed[sid] = terms;
+  });
+  return packed;
+}
+
+function unpackShardsFromCache(cacheData) {
+  if (cacheData?.shardsBySid && typeof cacheData.shardsBySid === "object") {
+    return cacheData.shardsBySid;
+  }
+
+  const packed = cacheData?.shardsBySidPacked;
+  if (!packed || typeof packed !== "object") {
+    return {};
+  }
+
+  const unpacked = {};
+  Object.entries(packed).forEach(([sid, terms]) => {
+    const shard = {};
+    (Array.isArray(terms) ? terms : []).forEach((entry) => {
+      const term = Array.isArray(entry) ? entry[0] : null;
+      const rows = Array.isArray(entry) ? entry[1] : null;
+      if (typeof term !== "string") {
+        return;
+      }
+      shard[term] = (Array.isArray(rows) ? rows : [])
+        .filter((row) => Array.isArray(row) && typeof row[0] === "string")
+        .map((row) => ({ url: row[0], count: Number(row[1] || 0) }));
+    });
+    unpacked[sid] = shard;
+  });
+  return unpacked;
+}
+
 function writeCache(payload) {
   try {
     ensureCacheDir();
-    fs.writeFileSync(cacheFile, JSON.stringify(payload, null, 2), "utf8");
+    const compact = JSON.stringify(payload);
+    if (cacheFile.endsWith(".gz")) {
+      fs.writeFileSync(cacheFile, zlib.gzipSync(Buffer.from(compact, "utf8")));
+    } else {
+      fs.writeFileSync(cacheFile, compact, "utf8");
+    }
   } catch (_error) {
     // Cache write failure should not break e2e flow.
   }
 }
 
 function hydrateIndexFromCache(cacheData, callback) {
-  const shardsBySid = cacheData?.shardsBySid || {};
+  const shardsBySid = unpackShardsFromCache(cacheData);
   const sidList = Object.keys(shardsBySid);
 
   if (sidList.length === 0) {
@@ -321,7 +382,7 @@ function main() {
             cacheFile,
             config: {
               maxDepth,
-              targetBooks: maxPages,
+              pageBudget,
               resultLimit: limit,
               workerCount: workers.length,
             },
@@ -339,6 +400,10 @@ function main() {
             },
             queryReports,
           };
+
+          console.log(
+            `[crawler] books in index: ${output.metrics.booksIndexed}, pages traversed: ${output.metrics.pagesFetched}`,
+          );
 
           console.log(JSON.stringify(output, null, 2));
 
@@ -387,7 +452,7 @@ function main() {
           urls: [seed],
           indexGid,
           maxDepth,
-          maxPages,
+          maxPages: pageBudget,
         },
         (crawlErr, crawlStats) => {
           if (crawlErr) {
@@ -409,7 +474,7 @@ function main() {
                 terms: crawlStats.terms || 0,
                 files: crawlStats.files || {},
                 pagesFetched: Number(crawlStats?.crawlStats?.pagesFetched || 0),
-                shardsBySid,
+                shardsBySidPacked: packShardsForCache(shardsBySid),
               });
             }
 

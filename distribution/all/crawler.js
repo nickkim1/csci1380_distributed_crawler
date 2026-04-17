@@ -57,13 +57,35 @@ function isBookDetailURL(maybeURL) {
   try {
     const parsed = new globalThis.URL(maybeURL);
     const pathName = parsed.pathname || "";
-    if (!pathName.includes("/catalogue/")) {
-      return false;
+    const hostName = (parsed.hostname || "").toLowerCase();
+
+    // Books-to-Scrape sandbox detail pages.
+    if (pathName.includes("/catalogue/")) {
+      if (pathName.includes("/catalogue/category/")) {
+        return false;
+      }
+      return /_[0-9]+\/index\.html$/i.test(pathName);
     }
-    if (pathName.includes("/catalogue/category/")) {
-      return false;
+
+    // Atlas Gutenberg mirror: treat text/html book files as indexable docs.
+    if (hostName === "atlas.cs.brown.edu" && pathName.startsWith("/data/gutenberg/")) {
+      const fileName = pathName.split("/").pop() || "";
+      if (!fileName || fileName.endsWith("/")) {
+        return false;
+      }
+      if (["books.txt", "indextree.txt", "donate-howto.txt"].includes(fileName.toLowerCase())) {
+        return false;
+      }
+      const isTextLike = /\.txt(?:\.[a-z0-9-]+)?$/i.test(fileName);
+      const isHTMLLike = /\.x?html?$/i.test(fileName);
+      if (!(isTextLike || isHTMLLike)) {
+        return false;
+      }
+      // Prefer actual ebook files, which almost always include an ID.
+      return /\d/.test(fileName);
     }
-    return /_[0-9]+\/index\.html$/i.test(pathName);
+
+    return false;
   } catch (_error) {
     return false;
   }
