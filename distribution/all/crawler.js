@@ -473,6 +473,12 @@ function crawler(config) {
 
         crawlStats.pagesFetched++;
 
+        if (crawlStats.pagesFetched % 10 === 0) {
+          globalThis.console.log(
+            `[crawler] progress pages=${crawlStats.pagesFetched} books=${docs.length} queue=${queue.length}`,
+          );
+        }
+
         if (isBookDetailURL(current)) {
           docs.push({
             key: id.getID(current),

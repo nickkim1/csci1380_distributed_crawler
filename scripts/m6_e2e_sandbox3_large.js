@@ -47,6 +47,8 @@ const indexGid = readFlag("indexGid") || `index_${gid}`;
 const maxDepth = readNumber("maxDepth", 2);
 const pageBudget = readNumber("pageBudget", readNumber("maxPages", 1000));
 const limit = readNumber("limit", 10);
+const workerCount = Math.max(1, readNumber("workerCount", 3));
+const basePort = Math.max(1025, readNumber("basePort", 7761));
 const refreshCache = readFlag("refreshCache") === "true";
 const cacheFile =
   readFlag("cacheFile") ||
@@ -58,11 +60,10 @@ const queryList =
     .map((q) => q.trim())
     .filter(Boolean);
 
-const workers = [
-  { ip: "127.0.0.1", port: 7761 },
-  { ip: "127.0.0.1", port: 7762 },
-  { ip: "127.0.0.1", port: 7763 },
-];
+const workers = Array.from({ length: workerCount }, (_unused, i) => ({
+  ip: "127.0.0.1",
+  port: basePort + i,
+}));
 
 function ensureCacheDir() {
   const dir = path.dirname(cacheFile);
