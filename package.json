@@ -20,7 +20,8 @@
     "test": "./scripts/test.sh",
     "lint": "./scripts/lint.sh",
     "m6:e2e-sandbox3": "node scripts/m6_e2e_sandbox3_large.js",
-    "m6:pipeline": "./scripts/m6_pipeline.sh"
+    "m6:pipeline": "./scripts/m6_pipeline.sh",
+    "m6:benchmark": "./scripts/m6_benchmark.sh"
   },
   "author": "",
   "license": "ISC",
