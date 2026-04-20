@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-04-20T00:44:22.641Z",
+  "resultDir": "results/perf/smoke/bench_pipeline_20260419_204413",
+  "seed": "https://cs.brown.edu/courses/csci1380/sandbox/3/",
+  "gid": "bench_pipeline",
+  "indexGid": "index_bench_pipeline",
+  "partial": false,
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 155.79310344827587,
+      "throughputPerSec": 6.418769366976538,
+      "samples": 58,
+      "unit": "pages/s",
+      "timedOut": false
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 10.6,
+      "throughputPerSec": 94.33962264150944,
+      "samples": 5,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 0.8055831666665654,
+      "throughputPerSec": 1215.63094741106,
+      "samples": 12,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0.05846659999988333,
+      "throughputPerSec": 16877.63713083485,
+      "samples": 5,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 13.58998599999965,
+      "throughputPerSec": 73.50861675356543,
+      "samples": 3,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "crawlIndexSummary": {
+    "docs": 5,
+    "terms": 1246,
+    "pagesFetched": 58,
+    "crawlMs": 9036,
+    "indexMs": 53,
+    "indexReadyMs": 9149.578375000001
+  },
+  "details": {
+    "rankingCandidateUrlsPerRun": 5,
+    "endToEndMs": 9614
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-04-20T00:44:42.645Z",
+  "resultDir": "results/perf/compare_smoke/aws_eval_compare_20260419_204429/run_corpus2/aws_eval_compare_c2_20260419_204440",
+  "seed": "https://cs.brown.edu/courses/csci1380/sandbox/2/",
+  "gid": "aws_eval_compare_c2",
+  "indexGid": "index_aws_eval_compare_c2",
+  "usedCache": false,
+  "cacheFile": "/Users/justnchn/Desktop/spring2026/cs1380/csci1380_distributed_crawler/.cache/m6_benchmark_aws_eval_compare_20260419_204429_aws_eval_compare_c2.json",
+  "config": {
+    "maxDepth": 1,
+    "maxPages": 5,
+    "workerCount": 12,
+    "basePort": 9461,
+    "workers": [
+      {
+        "ip": "127.0.0.1",
+        "port": 9461
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9462
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9463
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9464
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9465
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9466
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9467
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9468
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9469
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9470
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9471
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 9472
+      }
+    ],
+    "spawnWorkers": true,
+    "stopWorkers": true,
+    "componentTimeoutMs": 30000,
+    "queryRuns": 3,
+    "storageOps": 6,
+    "rankingRuns": 80,
+    "queryList": [
+      "book summary",
+      "mystery",
+      "history"
+    ]
+  },
+  "crawlIndexSummary": {
+    "docs": 0,
+    "terms": 0,
+    "pagesFetched": 3,
+    "crawlMs": 919,
+    "indexMs": 0,
+    "indexReadyMs": 919.922959
+  },
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 306.3333333333333,
+      "throughputPerSec": 3.264417845484222,
+      "samples": 3,
+      "unit": "pages/s",
+      "timedOut": false
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 2.63051408333331,
+      "throughputPerSec": 377.16773620436277,
+      "samples": 12,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 1.123819666666653,
+      "throughputPerSec": 878.1024089861108,
+      "samples": 3,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "details": {
+    "rankingCandidateUrlsPerRun": 0,
+    "endToEndMs": 2412
+  }
+}
