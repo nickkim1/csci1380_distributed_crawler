@@ -3,7 +3,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
+const { spawnSync } = require("node:child_process");
 
 const argv = process.argv.slice(2);
 
@@ -46,9 +46,10 @@ Optional:
   --label2 <text>        Legend label for corpus 2 (default: Corpus 2)
   --resultsDir <path>    Base output dir (default: results/perf)
   --groupName <name>     Prefix for output folder (default: aws_eval_compare)
+  --portionTimeoutMs <n> Timeout per corpus run in ms (default: 120000)
   --maxDepth <n>         Forwarded to m6_benchmark.js (default: 2)
   --maxPages <n>         Forwarded to m6_benchmark.js (default: 1000)
-  --workerCount <n>      Forwarded to m6_benchmark.js
+  --workerCount <n>      Forwarded to m6_benchmark.js (default local: 12)
   --basePort <n>         Base port for run 1 local workers (default: 9361)
   --queryRuns <n>        Forwarded to m6_benchmark.js (default: 20)
   --storageOps <n>       Forwarded to m6_benchmark.js (default: 50)
@@ -153,7 +154,16 @@ function renderGroupedBarChartSvg({ title, yLabel, components, series, valueKey 
 </svg>`;
 }
 
-function runSingleBenchmark({ seed, label, runId, gid, indexGid, resultDir, forwardedArgs }) {
+function runSingleBenchmark({
+  seed,
+  label,
+  runId,
+  gid,
+  indexGid,
+  resultDir,
+  forwardedArgs,
+  portionTimeoutMs,
+}) {
   const cmdArgs = [
     path.join("scripts", "m6_benchmark.js"),
     "--seed", seed,
@@ -164,25 +174,54 @@ function runSingleBenchmark({ seed, label, runId, gid, indexGid, resultDir, forw
     ...forwardedArgs,
   ];
 
-  const stdout = execFileSync("node", cmdArgs, {
+  const checkpointPath = path.join(resultDir, "checkpoint_summary.json");
+  const run = spawnSync("node", cmdArgs, {
     cwd: process.cwd(),
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
+    timeout: portionTimeoutMs,
   });
+
+  const stdout = String(run.stdout || "");
+  const stderr = String(run.stderr || "");
+  const timedOut = Boolean(
+    run.error && (run.error.code === "ETIMEDOUT" || run.error.signal === "SIGTERM"),
+  );
+
+  if (run.error && !timedOut) {
+    throw run.error;
+  }
+  if (run.status !== 0 && !timedOut) {
+    throw new Error(`benchmark failed for ${label}: ${stderr || stdout}`);
+  }
+
+  let summary = null;
+  let summaryPath = null;
 
   const first = stdout.indexOf("{");
   const last = stdout.lastIndexOf("}");
-  if (first === -1 || last === -1 || last < first) {
-    throw new Error(`benchmark output did not contain JSON: ${stdout}`);
+  if (first !== -1 && last !== -1 && last >= first) {
+    try {
+      const parsed = JSON.parse(stdout.slice(first, last + 1));
+      summaryPath = parsed?.artifacts?.summaryPath || null;
+    } catch (_error) {
+      // ignore and fall back to checkpoint file.
+    }
   }
 
-  const parsed = JSON.parse(stdout.slice(first, last + 1));
-  const summaryPath = parsed?.artifacts?.summaryPath;
-  if (!summaryPath || !fs.existsSync(summaryPath)) {
-    throw new Error(`summary.json missing for ${label}`);
+  if (summaryPath && fs.existsSync(summaryPath)) {
+    summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  } else if (fs.existsSync(checkpointPath)) {
+    summary = JSON.parse(fs.readFileSync(checkpointPath, "utf8"));
+    summaryPath = checkpointPath;
   }
 
-  const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
+  if (!summary) {
+    throw new Error(
+      `no summary artifact found for ${label} (timeout=${timedOut}). stderr=${stderr}`,
+    );
+  }
+
   const byName = Object.fromEntries(
     (summary.components || []).map((c) => [c.name, c]),
   );
@@ -193,6 +232,7 @@ function runSingleBenchmark({ seed, label, runId, gid, indexGid, resultDir, forw
     gid,
     indexGid,
     sourceSummaryPath: summaryPath,
+    timedOut,
     metrics: {
       crawler: byName.crawler || {},
       indexer: byName.indexer || {},
@@ -220,6 +260,7 @@ function main() {
 
   const label1 = readFlag("label1") || "Corpus 1";
   const label2 = readFlag("label2") || "Corpus 2";
+  const portionTimeoutMs = Math.max(1000, readNumber("portionTimeoutMs", 120000));
   const resultsBase = readFlag("resultsDir") || path.join(process.cwd(), "results", "perf");
   const groupName = readFlag("groupName") || "aws_eval_compare";
   const runId = `${groupName}_${timestamp()}`;
@@ -250,6 +291,14 @@ function main() {
     }
   });
 
+  const hasRemoteNodes = Boolean(readFlag("nodes") || readFlag("nodesFile"));
+  if (!hasRemoteNodes && readFlag("workerCount") === null) {
+    forwardedArgs.push("--workerCount", "12");
+  }
+  if (readFlag("componentTimeoutMs") === null) {
+    forwardedArgs.push("--componentTimeoutMs", String(portionTimeoutMs));
+  }
+
   const basePort = readNumber("basePort", 9361);
   const run1 = runSingleBenchmark({
     seed: seed1,
@@ -259,6 +308,7 @@ function main() {
     indexGid: `index_${groupName}_c1`,
     resultDir: path.join(outDir, "run_corpus1"),
     forwardedArgs,
+    portionTimeoutMs,
   });
 
   // Shift basePort on the second run when local workers are used.
@@ -280,6 +330,7 @@ function main() {
     indexGid: `index_${groupName}_c2`,
     resultDir: path.join(outDir, "run_corpus2"),
     forwardedArgs: secondArgs,
+    portionTimeoutMs,
   });
 
   const components = ["crawler", "indexer", "storage", "search"];
@@ -327,6 +378,7 @@ function main() {
     corpus1: {
       label: run1.label,
       seed: run1.seed,
+      timedOut: run1.timedOut,
       metrics: Object.fromEntries(
         components.map((c) => [
           c,
@@ -343,6 +395,7 @@ function main() {
     corpus2: {
       label: run2.label,
       seed: run2.seed,
+      timedOut: run2.timedOut,
       metrics: Object.fromEntries(
         components.map((c) => [
           c,

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="580">
+  <rect x="0" y="0" width="1100" height="580" fill="#fff" />
+  <text x="550" y="40" text-anchor="middle" font-size="30" font-family="Helvetica, Arial, sans-serif" fill="#111">Component Latency Comparison</text>
+  <rect x="780" y="14" width="20" height="20" fill="#f58518" />
+<text x="808" y="29" font-size="18" fill="#111">S3</text>
+<rect x="920" y="14" width="20" height="20" fill="#2f74b5" />
+<text x="948" y="29" font-size="18" fill="#111">S2</text>
+  <line x1="95" y1="460" x2="1070" y2="460" stroke="#ddd" />
+<text x="85" y="464" text-anchor="end" font-size="12" fill="#333">0</text>
+<line x1="95" y1="365" x2="1070" y2="365" stroke="#ddd" />
+<text x="85" y="369" text-anchor="end" font-size="12" fill="#333">76.5833</text>
+<line x1="95" y1="270" x2="1070" y2="270" stroke="#ddd" />
+<text x="85" y="274" text-anchor="end" font-size="12" fill="#333">153.1667</text>
+<line x1="95" y1="175" x2="1070" y2="175" stroke="#ddd" />
+<text x="85" y="179" text-anchor="end" font-size="12" fill="#333">229.75</text>
+<line x1="95" y1="80" x2="1070" y2="80" stroke="#ddd" />
+<text x="85" y="84" text-anchor="end" font-size="12" fill="#333">306.3333</text>
+  <line x1="95" y1="80" x2="95" y2="460" stroke="#444" />
+  <line x1="95" y1="460" x2="1070" y2="460" stroke="#444" />
+  <rect x="127" y="280.4727777569322" width="94.875" height="179.5272222430678" fill="#f58518" />
+<rect x="229.875" y="80" width="94.875" height="380" fill="#2f74b5" />
+<text x="225.875" y="488" text-anchor="middle" font-size="20" fill="#222">crawler</text>
+<rect x="364.75" y="449.5799782372144" width="94.875" height="10.420021762785638" fill="#f58518" />
+<rect x="467.625" y="460" width="94.875" height="0" fill="#2f74b5" />
+<text x="463.625" y="488" text-anchor="middle" font-size="20" fill="#222">indexer</text>
+<rect x="602.5" y="459.1353517627855" width="94.875" height="0.8646482372145383" fill="#f58518" />
+<rect x="705.375" y="456.7369030957563" width="94.875" height="3.263096904243714" fill="#2f74b5" />
+<text x="701.375" y="488" text-anchor="middle" font-size="20" fill="#222">storage</text>
+<rect x="840.25" y="455.7114924265505" width="94.875" height="4.288507573449523" fill="#f58518" />
+<rect x="943.125" y="458.60592554951035" width="94.875" height="1.3940744504896456" fill="#2f74b5" />
+<text x="939.125" y="488" text-anchor="middle" font-size="20" fill="#222">search</text>
+  <text x="550" y="556" text-anchor="middle" font-size="24" fill="#222">System Components</text>
+  <text x="28" y="270" text-anchor="middle" transform="rotate(-90 28 270)" font-size="24" fill="#222">Latency (ms)</text>
+</svg>

@@ -65,7 +65,7 @@ function hasError(err) {
 
 function printUsage() {
   console.log(
-    `Usage:\n  node scripts/m6_benchmark.js --seed <url> [options]\n\nOptions:\n  --seed <url>             Seed URL for crawl/index (required)\n  --gid <name>             Group id (default: bench_pipeline)\n  --indexGid <name>        Index gid (default: index_<gid>)\n  --queries <csv>          Query workload (default: book summary,mystery,history)\n  --maxDepth <n>           Crawl max depth (default: 1)\n  --maxPages <n>           Crawl page budget (default: 30)\n  --workerCount <n>        Number of workers to spawn (default: 3)\n  --basePort <n>           First worker port (default: 9361)\n  --nodes <csv>            Explicit nodes as ip:port,ip:port (overrides local worker list)\n  --nodesFile <path>       JSON file with nodes array [{ip,port}, ...]\n  --spawnWorkers <bool>    Spawn workers from this coordinator (default: true local, false with --nodes/--nodesFile)\n  --stopWorkers <bool>     Stop workers on teardown (default: same as spawnWorkers)\n  --queryRuns <n>          Number of query runs for search benchmark (default: 20)\n  --storageOps <n>         Put/Get operations for storage benchmark (default: 50)\n  --rankingRuns <n>        Number of ranking runs (default: 80)\n  --resultsDir <path>      Base directory for output artifacts (default: results/perf)\n  --cacheFile <path>       Cache file path (default: .cache/m6_benchmark_<gid>.json)\n  --useCache <bool>        Reuse cached index when config matches (default: true)\n  --refreshCache <bool>    Ignore cache and rebuild index (default: false)\n  --help                   Show this help`,
+    `Usage:\n  node scripts/m6_benchmark.js --seed <url> [options]\n\nOptions:\n  --seed <url>             Seed URL for crawl/index (required)\n  --gid <name>             Group id (default: bench_pipeline)\n  --indexGid <name>        Index gid (default: index_<gid>)\n  --queries <csv>          Query workload (default: book summary,mystery,history)\n  --maxDepth <n>           Crawl max depth (default: 1)\n  --maxPages <n>           Crawl page budget (default: 30)\n  --workerCount <n>        Number of workers to spawn (default: 3)\n  --basePort <n>           First worker port (default: 9361)\n  --nodes <csv>            Explicit nodes as ip:port,ip:port (overrides local worker list)\n  --nodesFile <path>       JSON file with nodes array [{ip,port}, ...]\n  --spawnWorkers <bool>    Spawn workers from this coordinator (default: true local, false with --nodes/--nodesFile)\n  --stopWorkers <bool>     Stop workers on teardown (default: same as spawnWorkers)\n  --componentTimeoutMs <n> Timeout budget per measured component (default: 120000)\n  --queryRuns <n>          Number of query runs for search benchmark (default: 20)\n  --storageOps <n>         Put/Get operations for storage benchmark (default: 50)\n  --rankingRuns <n>        Number of ranking runs (default: 80)\n  --resultsDir <path>      Base directory for output artifacts (default: results/perf)\n  --cacheFile <path>       Cache file path (default: .cache/m6_benchmark_<gid>.json)\n  --useCache <bool>        Reuse cached index when config matches (default: true)\n  --refreshCache <bool>    Ignore cache and rebuild index (default: false)\n  --help                   Show this help`,
   );
 }
 
@@ -120,6 +120,7 @@ const maxDepth = Math.max(0, readNumber("maxDepth", 1));
 const maxPages = Math.max(1, readNumber("maxPages", 30));
 const workerCount = Math.max(1, readNumber("workerCount", 3));
 const basePort = Math.max(1025, readNumber("basePort", 9361));
+const componentTimeoutMs = Math.max(1000, readNumber("componentTimeoutMs", 120000));
 const queryRuns = Math.max(1, readNumber("queryRuns", 20));
 const storageOps = Math.max(2, readNumber("storageOps", 50));
 const rankingRuns = Math.max(1, readNumber("rankingRuns", 80));
@@ -421,6 +422,7 @@ function snapshotIndex(crawlStats, callback) {
 }
 
 function benchmarkStorage(callback) {
+  const deadline = performance.now() + componentTimeoutMs;
   const putLatencies = [];
   const getLatencies = [];
   const keys = Array.from(
@@ -428,29 +430,44 @@ function benchmarkStorage(callback) {
     (_unused, i) => `bench_store_${Date.now()}_${i}`,
   );
 
+  const componentStart = performance.now();
   const putStart = performance.now();
   let i = 0;
 
+  const finish = (putTotalMs, getTotalMs, timedOut) => {
+    const totalOps = putLatencies.length + getLatencies.length;
+    const totalMs = performance.now() - componentStart;
+    return callback(null, {
+      putLatencyAvgMs: average(putLatencies),
+      getLatencyAvgMs: average(getLatencies),
+      latencyMs: (average(putLatencies) + average(getLatencies)) / 2,
+      throughputPerSec: totalMs > 0 ? (totalOps * 1000) / totalMs : 0,
+      samples: totalOps,
+      unit: "ops/s",
+      timedOut: Boolean(timedOut),
+      putTotalMs,
+      getTotalMs,
+    });
+  };
+
   const runPut = () => {
+    if (performance.now() >= deadline) {
+      return finish(performance.now() - putStart, 0, true);
+    }
+
     if (i >= keys.length) {
       const putTotalMs = performance.now() - putStart;
       const getStart = performance.now();
       let j = 0;
 
       const runGet = () => {
+        if (performance.now() >= deadline) {
+          return finish(putTotalMs, performance.now() - getStart, true);
+        }
+
         if (j >= keys.length) {
           const getTotalMs = performance.now() - getStart;
-          const totalOps = keys.length * 2;
-          const totalMs = putTotalMs + getTotalMs;
-
-          return callback(null, {
-            putLatencyAvgMs: average(putLatencies),
-            getLatencyAvgMs: average(getLatencies),
-            latencyMs: (average(putLatencies) + average(getLatencies)) / 2,
-            throughputPerSec: totalMs > 0 ? (totalOps * 1000) / totalMs : 0,
-            samples: totalOps,
-            unit: "ops/s",
-          });
+          return finish(putTotalMs, getTotalMs, false);
         }
 
         const t0 = performance.now();
@@ -488,11 +505,23 @@ function benchmarkStorage(callback) {
 }
 
 function benchmarkSearch(indexName, callback) {
+  const deadline = performance.now() + componentTimeoutMs;
   const latencies = [];
   const start = performance.now();
   let i = 0;
 
   const runNext = () => {
+    if (performance.now() >= deadline) {
+      const totalMs = performance.now() - start;
+      return callback(null, {
+        latencyMs: average(latencies),
+        throughputPerSec: totalMs > 0 ? (latencies.length * 1000) / totalMs : 0,
+        samples: latencies.length,
+        unit: "queries/s",
+        timedOut: true,
+      });
+    }
+
     if (i >= queryRuns) {
       const totalMs = performance.now() - start;
       return callback(null, {
@@ -500,6 +529,7 @@ function benchmarkSearch(indexName, callback) {
         throughputPerSec: totalMs > 0 ? (queryRuns * 1000) / totalMs : 0,
         samples: queryRuns,
         unit: "queries/s",
+        timedOut: false,
       });
     }
 
@@ -553,8 +583,14 @@ function benchmarkRanking(shardsBySid, callback) {
   const latencies = [];
   let accumulatedCandidates = 0;
   const start = performance.now();
+  const deadline = start + componentTimeoutMs;
 
-  for (let i = 0; i < rankingRuns; i++) {
+  let i = 0;
+  for (; i < rankingRuns; i++) {
+    if (performance.now() >= deadline) {
+      break;
+    }
+
     const t0 = performance.now();
     const termA = uniqueTerms[i % uniqueTerms.length];
     const termB = uniqueTerms[(i + 1) % uniqueTerms.length];
@@ -576,11 +612,12 @@ function benchmarkRanking(shardsBySid, callback) {
   const totalMs = performance.now() - start;
   callback(null, {
     latencyMs: average(latencies),
-    throughputPerSec: totalMs > 0 ? (rankingRuns * 1000) / totalMs : 0,
-    samples: rankingRuns,
+    throughputPerSec: totalMs > 0 ? (i * 1000) / totalMs : 0,
+    samples: i,
     unit: "rankings/s",
     candidateUrlsPerRun:
-      rankingRuns > 0 ? accumulatedCandidates / rankingRuns : 0,
+      i > 0 ? accumulatedCandidates / i : 0,
+    timedOut: i < rankingRuns,
   });
 }
 
@@ -756,6 +793,71 @@ th { background: #f8f8f8; }
 function runBenchmarkSuite(done) {
   const startedAt = Date.now();
   const cacheData = loadCache();
+  const resultDir = path.join(
+    resultsBaseDir,
+    `${gid}_${timestamp()}`,
+  );
+  ensureDirectory(resultDir);
+
+  const checkpointPath = path.join(resultDir, "checkpoint_summary.json");
+  const checkpointPayload = {
+    generatedAt: new Date().toISOString(),
+    resultDir,
+    seed,
+    gid,
+    indexGid,
+    partial: true,
+    components: [
+      { name: "crawler", latencyMs: 0, throughputPerSec: 0, samples: 0, unit: "pages/s", timedOut: true },
+      { name: "indexer", latencyMs: 0, throughputPerSec: 0, samples: 0, unit: "docs/s", timedOut: true },
+      { name: "storage", latencyMs: 0, throughputPerSec: 0, samples: 0, unit: "ops/s", timedOut: true },
+      { name: "search", latencyMs: 0, throughputPerSec: 0, samples: 0, unit: "queries/s", timedOut: true },
+      { name: "ranking", latencyMs: 0, throughputPerSec: 0, samples: 0, unit: "rankings/s", timedOut: true },
+    ],
+    crawlIndexSummary: {
+      docs: 0,
+      terms: 0,
+      pagesFetched: 0,
+      crawlMs: 0,
+      indexMs: 0,
+      indexReadyMs: 0,
+    },
+    details: {
+      rankingCandidateUrlsPerRun: 0,
+      endToEndMs: 0,
+    },
+  };
+
+  const writeCheckpoint = () => {
+    try {
+      checkpointPayload.generatedAt = new Date().toISOString();
+      checkpointPayload.details.endToEndMs = Date.now() - startedAt;
+      fs.writeFileSync(
+        checkpointPath,
+        JSON.stringify(checkpointPayload, null, 2),
+        "utf8",
+      );
+    } catch (_error) {
+      // best effort only
+    }
+  };
+
+  const setComponent = (componentName, patch) => {
+    const idx = checkpointPayload.components.findIndex(
+      (c) => c.name === componentName,
+    );
+    if (idx === -1) {
+      checkpointPayload.components.push({ name: componentName, ...patch });
+    } else {
+      checkpointPayload.components[idx] = {
+        ...checkpointPayload.components[idx],
+        ...patch,
+      };
+    }
+    writeCheckpoint();
+  };
+
+  writeCheckpoint();
 
   startCluster((clusterErr) => {
     if (clusterErr) {
@@ -768,10 +870,47 @@ function runBenchmarkSuite(done) {
       indexReadyMs,
       shardsBySid,
     ) => {
+      const pagesFetched = Number(crawlStats?.crawlStats?.pagesFetched || 0);
+      const docs = Number(crawlStats?.docs || 0);
+      const terms = Number(crawlStats?.terms || 0);
+      const crawlMs = Number(crawlStats?.crawlStats?.crawlMs || 0);
+      const indexMs = Number(crawlStats?.crawlStats?.indexMs || 0);
+
+      checkpointPayload.crawlIndexSummary = {
+        docs,
+        terms,
+        pagesFetched,
+        crawlMs,
+        indexMs,
+        indexReadyMs,
+      };
+      setComponent("crawler", {
+        latencyMs: pagesFetched > 0 ? crawlMs / pagesFetched : 0,
+        throughputPerSec: crawlMs > 0 ? (pagesFetched * 1000) / crawlMs : 0,
+        samples: pagesFetched,
+        unit: "pages/s",
+        timedOut: false,
+      });
+      setComponent("indexer", {
+        latencyMs: docs > 0 ? indexMs / docs : 0,
+        throughputPerSec: indexMs > 0 ? (docs * 1000) / indexMs : 0,
+        samples: docs,
+        unit: "docs/s",
+        timedOut: false,
+      });
+
       benchmarkStorage((storageErr, storageStats) => {
         if (storageErr) {
           return stopCluster(() => done(storageErr));
         }
+
+        setComponent("storage", {
+          latencyMs: storageStats.latencyMs,
+          throughputPerSec: storageStats.throughputPerSec,
+          samples: storageStats.samples,
+          unit: storageStats.unit,
+          timedOut: Boolean(storageStats.timedOut),
+        });
 
         benchmarkSearch(
           crawlStats.indexGid || indexGid,
@@ -780,18 +919,26 @@ function runBenchmarkSuite(done) {
               return stopCluster(() => done(searchErr));
             }
 
+            setComponent("search", {
+              latencyMs: searchStats.latencyMs,
+              throughputPerSec: searchStats.throughputPerSec,
+              samples: searchStats.samples,
+              unit: searchStats.unit,
+              timedOut: Boolean(searchStats.timedOut),
+            });
+
             benchmarkRanking(shardsBySid, (rankingErr, rankingStats) => {
               if (rankingErr) {
                 return stopCluster(() => done(rankingErr));
               }
 
-              const pagesFetched = Number(
-                crawlStats?.crawlStats?.pagesFetched || 0,
-              );
-              const docs = Number(crawlStats?.docs || 0);
-              const terms = Number(crawlStats?.terms || 0);
-              const crawlMs = Number(crawlStats?.crawlStats?.crawlMs || 0);
-              const indexMs = Number(crawlStats?.crawlStats?.indexMs || 0);
+              setComponent("ranking", {
+                latencyMs: rankingStats.latencyMs,
+                throughputPerSec: rankingStats.throughputPerSec,
+                samples: rankingStats.samples,
+                unit: rankingStats.unit,
+                timedOut: Boolean(rankingStats.timedOut),
+              });
 
               const components = [
                 {
@@ -801,6 +948,7 @@ function runBenchmarkSuite(done) {
                     crawlMs > 0 ? (pagesFetched * 1000) / crawlMs : 0,
                   samples: pagesFetched,
                   unit: "pages/s",
+                  timedOut: false,
                 },
                 {
                   name: "indexer",
@@ -808,6 +956,7 @@ function runBenchmarkSuite(done) {
                   throughputPerSec: indexMs > 0 ? (docs * 1000) / indexMs : 0,
                   samples: docs,
                   unit: "docs/s",
+                  timedOut: false,
                 },
                 {
                   name: "storage",
@@ -815,6 +964,7 @@ function runBenchmarkSuite(done) {
                   throughputPerSec: storageStats.throughputPerSec,
                   samples: storageStats.samples,
                   unit: storageStats.unit,
+                  timedOut: Boolean(storageStats.timedOut),
                 },
                 {
                   name: "ranking",
@@ -822,6 +972,7 @@ function runBenchmarkSuite(done) {
                   throughputPerSec: rankingStats.throughputPerSec,
                   samples: rankingStats.samples,
                   unit: rankingStats.unit,
+                  timedOut: Boolean(rankingStats.timedOut),
                 },
                 {
                   name: "search",
@@ -829,13 +980,10 @@ function runBenchmarkSuite(done) {
                   throughputPerSec: searchStats.throughputPerSec,
                   samples: searchStats.samples,
                   unit: searchStats.unit,
+                  timedOut: Boolean(searchStats.timedOut),
                 },
               ];
 
-              const resultDir = path.join(
-                resultsBaseDir,
-                `${gid}_${timestamp()}`,
-              );
               const payload = {
                 generatedAt: new Date().toISOString(),
                 resultDir,
@@ -852,6 +1000,7 @@ function runBenchmarkSuite(done) {
                   workers,
                   spawnWorkers,
                   stopWorkers,
+                  componentTimeoutMs,
                   queryRuns,
                   storageOps,
                   rankingRuns,
@@ -872,6 +1021,12 @@ function runBenchmarkSuite(done) {
                   endToEndMs: Date.now() - startedAt,
                 },
               };
+
+              checkpointPayload.partial = false;
+              checkpointPayload.components = components;
+              checkpointPayload.crawlIndexSummary = payload.crawlIndexSummary;
+              checkpointPayload.details = payload.details;
+              writeCheckpoint();
 
               const artifactPaths = writeArtifacts(resultDir, payload);
               stopCluster(() => done(null, { payload, artifactPaths }));
@@ -908,6 +1063,7 @@ function runBenchmarkSuite(done) {
                 workers,
                 spawnWorkers,
                 stopWorkers,
+                componentTimeoutMs,
                 docs: crawlStats.docs || 0,
                 terms: crawlStats.terms || 0,
                 pagesFetched: Number(crawlStats?.crawlStats?.pagesFetched || 0),
