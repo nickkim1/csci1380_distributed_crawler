@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-04-20T17:20:32.819Z",
+  "resultDir": "results/perf/timeout_smoke/aws_eval_compare_20260420_132032/run_corpus1/aws_eval_compare_c1_20260420_132032",
+  "seed": "https://cs.brown.edu/courses/csci1380/sandbox/3/",
+  "gid": "aws_eval_compare_c1",
+  "indexGid": "index_aws_eval_compare_c1",
+  "partial": true,
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "pages/s",
+      "timedOut": true
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "docs/s",
+      "timedOut": true
+    },
+    {
+      "name": "storage",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "ops/s",
+      "timedOut": true
+    },
+    {
+      "name": "search",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "queries/s",
+      "timedOut": true
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "rankings/s",
+      "timedOut": true
+    }
+  ],
+  "crawlIndexSummary": {
+    "docs": 0,
+    "terms": 0,
+    "pagesFetched": 0,
+    "crawlMs": 0,
+    "indexMs": 0,
+    "indexReadyMs": 0
+  },
+  "details": {
+    "rankingCandidateUrlsPerRun": 0,
+    "endToEndMs": 0
+  }
+}

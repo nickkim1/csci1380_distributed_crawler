@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>M6 Benchmark Results</title>
+<style>
+body { font-family: Helvetica, Arial, sans-serif; margin: 20px; color: #111; }
+h1 { margin-bottom: 4px; }
+.meta { color: #555; margin-bottom: 18px; }
+img { width: 100%; max-width: 980px; border: 1px solid #ddd; margin-bottom: 16px; }
+table { border-collapse: collapse; min-width: 760px; }
+th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
+th { background: #f8f8f8; }
+</style>
+</head>
+<body>
+  <h1>M6 Component Performance Results</h1>
+  <div class="meta">Generated: 2026-04-20T17:42:52.849Z | Result dir: results/perf/gutenberg_local/gutenberg_local_20260420_134001</div>
+  <h2>Latency</h2>
+  <img src="latency_bar.svg" alt="Latency chart" />
+  <h2>Throughput</h2>
+  <img src="throughput_bar.svg" alt="Throughput chart" />
+  <h2>Metrics Table</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Latency (ms)</th><th>Throughput (/sec)</th><th>Samples</th><th>Unit</th></tr></thead>
+    <tbody>
+      <tr><td>crawler</td><td>377.6764</td><td>2.6478</td><td>411</td><td>pages/s</td></tr>
+<tr><td>indexer</td><td>975</td><td>1.0256</td><td>3</td><td>docs/s</td></tr>
+<tr><td>storage</td><td>0.5246</td><td>1899.7622</td><td>400</td><td>ops/s</td></tr>
+<tr><td>ranking</td><td>0.0116</td><td>72280.9706</td><td>80</td><td>rankings/s</td></tr>
+<tr><td>search</td><td>204.8389</td><td>4.8818</td><td>50</td><td>queries/s</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

@@ -88,6 +88,45 @@ function round(n) {
   return Number((Number(n) || 0).toFixed(4));
 }
 
+function findLatestArtifact(rootDir, targetName) {
+  if (!fs.existsSync(rootDir)) {
+    return null;
+  }
+
+  const stack = [rootDir];
+  let latest = null;
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    let entries = [];
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch (_error) {
+      continue;
+    }
+
+    entries.forEach((entry) => {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        return;
+      }
+      if (entry.isFile() && entry.name === targetName) {
+        try {
+          const mtimeMs = fs.statSync(fullPath).mtimeMs;
+          if (!latest || mtimeMs > latest.mtimeMs) {
+            latest = { path: fullPath, mtimeMs };
+          }
+        } catch (_error) {
+          // ignore file stat errors
+        }
+      }
+    });
+  }
+
+  return latest ? latest.path : null;
+}
+
 function renderGroupedBarChartSvg({ title, yLabel, components, series, valueKey }) {
   const width = 1100;
   const height = 580;
@@ -174,7 +213,7 @@ function runSingleBenchmark({
     ...forwardedArgs,
   ];
 
-  const checkpointPath = path.join(resultDir, "checkpoint_summary.json");
+  const expectedCheckpointPath = path.join(resultDir, "checkpoint_summary.json");
   const run = spawnSync("node", cmdArgs, {
     cwd: process.cwd(),
     encoding: "utf8",
@@ -211,9 +250,22 @@ function runSingleBenchmark({
 
   if (summaryPath && fs.existsSync(summaryPath)) {
     summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
-  } else if (fs.existsSync(checkpointPath)) {
-    summary = JSON.parse(fs.readFileSync(checkpointPath, "utf8"));
-    summaryPath = checkpointPath;
+  } else {
+    const discoveredSummaryPath = findLatestArtifact(resultDir, "summary.json");
+    if (discoveredSummaryPath) {
+      summary = JSON.parse(fs.readFileSync(discoveredSummaryPath, "utf8"));
+      summaryPath = discoveredSummaryPath;
+    }
+  }
+
+  if (!summary) {
+    const checkpointPath = fs.existsSync(expectedCheckpointPath)
+      ? expectedCheckpointPath
+      : findLatestArtifact(resultDir, "checkpoint_summary.json");
+    if (checkpointPath) {
+      summary = JSON.parse(fs.readFileSync(checkpointPath, "utf8"));
+      summaryPath = checkpointPath;
+    }
   }
 
   if (!summary) {

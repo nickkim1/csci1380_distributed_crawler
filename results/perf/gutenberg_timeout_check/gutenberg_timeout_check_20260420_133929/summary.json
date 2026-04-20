@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-04-20T17:39:35.742Z",
+  "resultDir": "results/perf/gutenberg_timeout_check/gutenberg_timeout_check_20260420_133929",
+  "seed": "https://atlas.cs.brown.edu/data/gutenberg/",
+  "gid": "gutenberg_timeout_check",
+  "indexGid": "index_gutenberg_timeout_check",
+  "usedCache": false,
+  "cacheFile": "/Users/justnchn/Desktop/spring2026/cs1380/csci1380_distributed_crawler/.cache/m6_benchmark_gutenberg_timeout_check.json",
+  "config": {
+    "maxDepth": 8,
+    "maxPages": 120000,
+    "workerCount": 6,
+    "basePort": 10961,
+    "workers": [
+      {
+        "ip": "127.0.0.1",
+        "port": 10961
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 10962
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 10963
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 10964
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 10965
+      },
+      {
+        "ip": "127.0.0.1",
+        "port": 10966
+      }
+    ],
+    "spawnWorkers": true,
+    "stopWorkers": true,
+    "componentTimeoutMs": 5000,
+    "queryRuns": 10,
+    "storageOps": 20,
+    "rankingRuns": 80,
+    "queryList": [
+      "book summary",
+      "mystery",
+      "history"
+    ]
+  },
+  "crawlIndexSummary": {
+    "docs": 0,
+    "terms": 0,
+    "pagesFetched": 26,
+    "crawlMs": 5422,
+    "indexMs": 0,
+    "indexReadyMs": 5422.47775
+  },
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 208.53846153846155,
+      "throughputPerSec": 4.795278495020288,
+      "samples": 26,
+      "unit": "pages/s",
+      "timedOut": true
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 0.9631271250000737,
+      "throughputPerSec": 1030.5703758732202,
+      "samples": 40,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0,
+      "throughputPerSec": 0,
+      "samples": 0,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 0.6869415000000118,
+      "throughputPerSec": 1444.5909099118678,
+      "samples": 10,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "details": {
+    "rankingCandidateUrlsPerRun": 0,
+    "endToEndMs": 6263
+  }
+}

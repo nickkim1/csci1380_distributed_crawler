@@ -1,0 +1,6 @@
+component,latency_ms,throughput_per_sec,samples,unit
+crawler,208.5385,4.7953,26,pages/s
+indexer,0,0,0,docs/s
+storage,0.9631,1030.5704,40,ops/s
+ranking,0,0,0,rankings/s
+search,0.6869,1444.5909,10,queries/s

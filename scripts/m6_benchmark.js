@@ -875,6 +875,7 @@ function runBenchmarkSuite(done) {
       const terms = Number(crawlStats?.terms || 0);
       const crawlMs = Number(crawlStats?.crawlStats?.crawlMs || 0);
       const indexMs = Number(crawlStats?.crawlStats?.indexMs || 0);
+      const crawlTimedOut = Boolean(crawlStats?.crawlStats?.crawlTimedOut);
 
       checkpointPayload.crawlIndexSummary = {
         docs,
@@ -889,7 +890,7 @@ function runBenchmarkSuite(done) {
         throughputPerSec: crawlMs > 0 ? (pagesFetched * 1000) / crawlMs : 0,
         samples: pagesFetched,
         unit: "pages/s",
-        timedOut: false,
+        timedOut: crawlTimedOut,
       });
       setComponent("indexer", {
         latencyMs: docs > 0 ? indexMs / docs : 0,
@@ -948,7 +949,7 @@ function runBenchmarkSuite(done) {
                     crawlMs > 0 ? (pagesFetched * 1000) / crawlMs : 0,
                   samples: pagesFetched,
                   unit: "pages/s",
-                  timedOut: false,
+                  timedOut: crawlTimedOut,
                 },
                 {
                   name: "indexer",
@@ -1044,6 +1045,7 @@ function runBenchmarkSuite(done) {
           indexGid,
           maxDepth,
           maxPages,
+          crawlTimeoutMs: componentTimeoutMs,
         },
         (crawlErr, crawlStats) => {
           if (hasError(crawlErr)) {

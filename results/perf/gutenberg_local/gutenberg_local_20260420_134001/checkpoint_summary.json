@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-04-20T17:42:52.849Z",
+  "resultDir": "results/perf/gutenberg_local/gutenberg_local_20260420_134001",
+  "seed": "https://atlas.cs.brown.edu/data/gutenberg/",
+  "gid": "gutenberg_local",
+  "indexGid": "index_gutenberg_local",
+  "partial": false,
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 377.676399026764,
+      "throughputPerSec": 2.6477693670478337,
+      "samples": 411,
+      "unit": "pages/s",
+      "timedOut": true
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 975,
+      "throughputPerSec": 1.0256410256410255,
+      "samples": 3,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 0.5246182000006229,
+      "throughputPerSec": 1899.7622100886492,
+      "samples": 400,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0.011647975001324085,
+      "throughputPerSec": 72280.9705884843,
+      "samples": 80,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 204.83890494000457,
+      "throughputPerSec": 4.881799550430204,
+      "samples": 50,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "crawlIndexSummary": {
+    "docs": 3,
+    "terms": 131829,
+    "pagesFetched": 411,
+    "crawlMs": 155225,
+    "indexMs": 2925,
+    "indexReadyMs": 159466.889125
+  },
+  "details": {
+    "rankingCandidateUrlsPerRun": 1.7625,
+    "endToEndMs": 171456
+  }
+}

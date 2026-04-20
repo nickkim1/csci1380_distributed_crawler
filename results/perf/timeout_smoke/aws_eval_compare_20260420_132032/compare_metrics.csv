@@ -1,0 +1,9 @@
+corpus,component,latency_ms,throughput_per_sec,samples,unit
+S3,crawler,0,0,0,pages/s
+S3,indexer,0,0,0,docs/s
+S3,storage,0,0,0,ops/s
+S3,search,0,0,0,queries/s
+G,crawler,0,0,0,pages/s
+G,indexer,0,0,0,docs/s
+G,storage,0,0,0,ops/s
+G,search,0,0,0,queries/s

@@ -284,6 +284,12 @@ function crawler(config) {
     const maxPages = Number.isInteger(configuration?.maxPages)
       ? Math.max(1, Number(configuration.maxPages))
       : 200;
+    const crawlTimeoutMs = Number.isInteger(configuration?.crawlTimeoutMs)
+      ? Math.max(1, Number(configuration.crawlTimeoutMs))
+      : 0;
+    const crawlDeadlineAt = crawlTimeoutMs > 0
+      ? Date.now() + crawlTimeoutMs
+      : Number.POSITIVE_INFINITY;
     if (urls.length === 0) {
       return callback(
         Error("crawler.exec: configuration.urls must be a non-empty array"),
@@ -305,6 +311,7 @@ function crawler(config) {
       sampleDocs: [],
       crawlMs: 0,
       indexMs: 0,
+      crawlTimedOut: false,
     };
 
     const crawlStart = Date.now();
@@ -393,6 +400,10 @@ function crawler(config) {
             crawlStats.fallbackDocs = crawlDocs.length;
           }
 
+          if (Date.now() >= crawlDeadlineAt) {
+            crawlStats.crawlTimedOut = true;
+          }
+
           crawlStats.bookDocs = crawlDocs.length;
           crawlStats.crawlMs = Date.now() - crawlStart;
 
@@ -463,7 +474,8 @@ function crawler(config) {
       while (
         queue.length > 0 &&
         docs.length < pageBudget &&
-        crawlStats.pagesFetched < crawlBudget
+        crawlStats.pagesFetched < crawlBudget &&
+        Date.now() < crawlDeadlineAt
       ) {
         const current = queue.shift();
         const html = fetchHTML(current);
@@ -499,6 +511,10 @@ function crawler(config) {
             }
           }
         }
+      }
+
+      if (Date.now() >= crawlDeadlineAt) {
+        crawlStats.crawlTimedOut = true;
       }
 
       return docs;
