@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>M6 Scaling Sweep</title>
+<style>
+body { font-family: Helvetica, Arial, sans-serif; margin: 20px; color: #111; }
+h1 { margin-bottom: 4px; }
+.meta { color: #555; margin-bottom: 10px; }
+img { width: 100%; max-width: 1040px; border: 1px solid #ddd; margin-bottom: 16px; }
+table { border-collapse: collapse; min-width: 820px; }
+th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
+th { background: #f8f8f8; }
+</style>
+</head>
+<body>
+  <h1>M6 Workflow Scaling</h1>
+  <div class="meta">Generated: 2026-04-21T08:51:57.971Z</div>
+  <div class="meta">Seed: https://atlas.cs.brown.edu/data/gutenberg/</div>
+  <div class="meta">Experiment: m6_scaling_20260421_032502</div>
+  <div class="meta">Throughput Metric: auto</div>
+  <h2>Throughput vs Node Count</h2>
+  <img src="workflow_throughput_scaling.svg" alt="Throughput scaling chart" />
+  <h2>Latency vs Node Count</h2>
+  <img src="workflow_latency_scaling.svg" alt="Latency scaling chart" />
+  <h2>Aggregated Metrics</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nodes</th>
+        <th>Successful Runs</th>
+        <th>Throughput Mean (items/s)</th>
+        <th>Throughput Stddev</th>
+        <th>Latency Mean (ms)</th>
+        <th>Latency Stddev (ms)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>3</td><td>1.8022</td><td>1.2744</td><td>252528</td><td>178561.5523</td></tr>
+<tr><td>3</td><td>3</td><td>4.0012</td><td>0.2804</td><td>257242.6667</td><td>18862.5548</td></tr>
+<tr><td>6</td><td>3</td><td>5.1436</td><td>0.09</td><td>199143.3333</td><td>3528.8605</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

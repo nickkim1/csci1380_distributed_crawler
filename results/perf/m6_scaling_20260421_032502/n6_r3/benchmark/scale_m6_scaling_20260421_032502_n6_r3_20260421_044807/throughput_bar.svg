@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520">
+  <rect x="0" y="0" width="980" height="520" fill="#fff" />
+  <text x="490" y="32" text-anchor="middle" font-size="24" font-family="Helvetica, Arial, sans-serif" fill="#111">Component Throughput</text>
+  <line x1="90" y1="430" x2="960" y2="430" stroke="#ddd" />
+<text x="80" y="434" text-anchor="end" font-size="12" fill="#333">0</text>
+<line x1="90" y1="340" x2="960" y2="340" stroke="#ddd" />
+<text x="80" y="344" text-anchor="end" font-size="12" fill="#333">29431.5877</text>
+<line x1="90" y1="250" x2="960" y2="250" stroke="#ddd" />
+<text x="80" y="254" text-anchor="end" font-size="12" fill="#333">58863.1755</text>
+<line x1="90" y1="160" x2="960" y2="160" stroke="#ddd" />
+<text x="80" y="164" text-anchor="end" font-size="12" fill="#333">88294.7632</text>
+<line x1="90" y1="70" x2="960" y2="70" stroke="#ddd" />
+<text x="80" y="74" text-anchor="end" font-size="12" fill="#333">117726.351</text>
+  <line x1="90" y1="70" x2="90" y2="430" stroke="#444" />
+  <line x1="90" y1="430" x2="960" y2="430" stroke="#444" />
+  <rect x="106" y="429.97322963549635" width="154.8" height="0.026770364503641564" fill="#f58518" />
+<text x="183.4" y="421.97322963549635" text-anchor="middle" font-size="12" fill="#222">8.7544</text>
+<text x="183.4" y="452" text-anchor="middle" font-size="13" fill="#222">crawler</text>
+<rect x="276.8" y="429.9989620382879" width="154.8" height="0.001037961712090956" fill="#f58518" />
+<text x="354.20000000000005" y="421.9989620382879" text-anchor="middle" font-size="12" fill="#222">0.3394</text>
+<text x="354.20000000000005" y="452" text-anchor="middle" font-size="13" fill="#222">indexer</text>
+<rect x="447.6" y="429.89651704641165" width="154.8" height="0.10348295358833773" fill="#f58518" />
+<text x="525" y="421.89651704641165" text-anchor="middle" font-size="12" fill="#222">33.8408</text>
+<text x="525" y="452" text-anchor="middle" font-size="13" fill="#222">storage</text>
+<rect x="618.4000000000001" y="70" width="154.8" height="360" fill="#f58518" />
+<text x="695.8000000000001" y="62" text-anchor="middle" font-size="12" fill="#222">117726.351</text>
+<text x="695.8000000000001" y="452" text-anchor="middle" font-size="13" fill="#222">ranking</text>
+<rect x="789.2" y="429.9995172710328" width="154.8" height="0.0004827289672171396" fill="#f58518" />
+<text x="866.6" y="421.9995172710328" text-anchor="middle" font-size="12" fill="#222">0.1579</text>
+<text x="866.6" y="452" text-anchor="middle" font-size="13" fill="#222">search</text>
+  <text x="30" y="250" text-anchor="middle" transform="rotate(-90 30 250)" font-size="13" fill="#222">Throughput (/sec)</text>
+</svg>

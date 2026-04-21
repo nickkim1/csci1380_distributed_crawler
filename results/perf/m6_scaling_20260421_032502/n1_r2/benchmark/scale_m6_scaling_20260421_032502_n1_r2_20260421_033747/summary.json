@@ -1,0 +1,93 @@
+{
+  "generatedAt": "2026-04-21T07:44:06.233Z",
+  "resultDir": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r2/benchmark/scale_m6_scaling_20260421_032502_n1_r2_20260421_033747",
+  "seed": "https://atlas.cs.brown.edu/data/gutenberg/",
+  "gid": "scale_m6_scaling_20260421_032502_n1_r2",
+  "indexGid": "index_scale_m6_scaling_20260421_032502_n1_r2",
+  "runLabel": "n1_r2",
+  "experimentId": "m6_scaling_20260421_032502",
+  "usedCache": false,
+  "cacheFile": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/.cache/m6_benchmark_scale_m6_scaling_20260421_032502_n1_r2.json",
+  "config": {
+    "maxDepth": 1,
+    "maxPages": 10,
+    "workerCount": 3,
+    "basePort": 9361,
+    "coordinatorIp": "127.0.0.1",
+    "coordinatorPort": 18245,
+    "workers": [
+      {
+        "ip": "35.171.191.249",
+        "port": 8080
+      }
+    ],
+    "spawnWorkers": false,
+    "stopWorkers": false,
+    "componentTimeoutMs": 300000,
+    "queryRuns": 4,
+    "storageOps": 50,
+    "rankingRuns": 80,
+    "queryList": [
+      "book summary",
+      "mystery",
+      "history"
+    ]
+  },
+  "crawlIndexSummary": {
+    "docs": 10,
+    "terms": 138864,
+    "pagesFetched": 1024,
+    "crawlMs": 136543,
+    "indexMs": 103604,
+    "indexReadyMs": 270261.77720799996
+  },
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 133.3427734375,
+      "throughputPerSec": 7.499469031733593,
+      "samples": 1024,
+      "unit": "pages/s",
+      "timedOut": false
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 10360.4,
+      "throughputPerSec": 0.09652136983128065,
+      "samples": 10,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 28.707359579998304,
+      "throughputPerSec": 34.78635100524376,
+      "samples": 100,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0.008845774999645072,
+      "throughputPerSec": 108364.37521240105,
+      "samples": 80,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 26325.24740625001,
+      "throughputPerSec": 0.03798630966934246,
+      "samples": 4,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "details": {
+    "rankingCandidateUrlsPerRun": 6.55,
+    "endToEndMs": 378537,
+    "workflowItems": 1024,
+    "workflowThroughputPerSec": 2.7051516760580867,
+    "workflowLatencyMs": 378537
+  }
+}

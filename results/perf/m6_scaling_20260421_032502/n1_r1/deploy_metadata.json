@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-04-21T07:27:58Z",
+  "imageId": "ami-0b6c6ebed2801a5cb",
+  "instanceType": "t3.micro",
+  "keyName": "csci1380",
+  "securityGroup": "sg-09f4146ed85a6feeb",
+  "region": "us-east-1",
+  "workerPort": 8080,
+  "instances": [
+    {"instanceId": "i-05a61fd5a8bfdefc6", "ip": "98.85.224.113", "port": 8080, "availabilityZone": "us-east-1d"}
+  ],
+  "instanceIds": [
+    "i-05a61fd5a8bfdefc6"
+  ],
+  "nodes": [
+    {"ip": "98.85.224.113", "port": 8080}
+  ]
+}

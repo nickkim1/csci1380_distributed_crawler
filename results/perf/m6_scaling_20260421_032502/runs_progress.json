@@ -1,0 +1,230 @@
+[
+  {
+    "nodeCount": 1,
+    "repetition": 1,
+    "runTag": "n1_r1",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 379043,
+      "throughputPerSec": 2.701540458470411,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 2.701540458470411,
+      "bottleneckThroughputPerSec": 0.03709737415569349,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r1/benchmark/scale_m6_scaling_20260421_032502_n1_r1_20260421_032758/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r1/deploy_metadata.json",
+    "instanceIds": [
+      "i-05a61fd5a8bfdefc6"
+    ]
+  },
+  {
+    "nodeCount": 1,
+    "repetition": 2,
+    "runTag": "n1_r2",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 378537,
+      "throughputPerSec": 2.7051516760580867,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 2.7051516760580867,
+      "bottleneckThroughputPerSec": 0.03798630966934246,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r2/benchmark/scale_m6_scaling_20260421_032502_n1_r2_20260421_033747/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r2/deploy_metadata.json",
+    "instanceIds": [
+      "i-0bbf48462552727ae"
+    ]
+  },
+  {
+    "nodeCount": 1,
+    "repetition": 3,
+    "runTag": "n1_r3",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 4,
+      "throughputPerSec": 0,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 0,
+      "bottleneckThroughputPerSec": 0,
+      "workflowItems": 0,
+      "pagesFetched": 0,
+      "docs": 0
+    },
+    "benchmarkTimedOut": true,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r3/benchmark/scale_m6_scaling_20260421_032502_n1_r3_20260421_034750/checkpoint_summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n1_r3/deploy_metadata.json",
+    "instanceIds": [
+      "i-01353da4163e64f91"
+    ]
+  },
+  {
+    "nodeCount": 3,
+    "repetition": 1,
+    "runTag": "n3_r1",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 283651,
+      "throughputPerSec": 3.6100701213815567,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 3.6100701213815567,
+      "bottleneckThroughputPerSec": 0.059300286089272736,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r1/benchmark/scale_m6_scaling_20260421_032502_n3_r1_20260421_040657/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r1/deploy_metadata.json",
+    "instanceIds": [
+      "i-0646f13b6b6813112",
+      "i-0b6f8c37323eb2d4f",
+      "i-0c4b56d44989aecbc"
+    ]
+  },
+  {
+    "nodeCount": 3,
+    "repetition": 2,
+    "runTag": "n3_r2",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 247301,
+      "throughputPerSec": 4.140703029910918,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 4.140703029910918,
+      "bottleneckThroughputPerSec": 0.07472637472649797,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r2/benchmark/scale_m6_scaling_20260421_032502_n3_r2_20260421_041559/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r2/deploy_metadata.json",
+    "instanceIds": [
+      "i-0c57833aaa86de2d0",
+      "i-0cb2cdc26b59273a1",
+      "i-09abf4fed693e4a7d"
+    ]
+  },
+  {
+    "nodeCount": 3,
+    "repetition": 3,
+    "runTag": "n3_r3",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 240776,
+      "throughputPerSec": 4.252915572980696,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 4.252915572980696,
+      "bottleneckThroughputPerSec": 0.06858483166417821,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r3/benchmark/scale_m6_scaling_20260421_032502_n3_r3_20260421_042352/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r3/deploy_metadata.json",
+    "instanceIds": [
+      "i-08965ee756a2aca86",
+      "i-08f87c1b78a75181a",
+      "i-0ffd199071f9d9d60"
+    ]
+  },
+  {
+    "nodeCount": 6,
+    "repetition": 1,
+    "runTag": "n6_r1",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 196965,
+      "throughputPerSec": 5.198893204376412,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 5.198893204376412,
+      "bottleneckThroughputPerSec": 0.14153701177637412,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r1/benchmark/scale_m6_scaling_20260421_032502_n6_r1_20260421_043203/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r1/deploy_metadata.json",
+    "instanceIds": [
+      "i-0a5938fd4d83c105c",
+      "i-02ee94b5e092ce056",
+      "i-02567f2e8c8475fae",
+      "i-0008894892e7cea75",
+      "i-0a6753bb8108fdd50",
+      "i-0daa31a43ac22c1a4"
+    ]
+  },
+  {
+    "nodeCount": 6,
+    "repetition": 2,
+    "runTag": "n6_r2",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 204121,
+      "throughputPerSec": 5.016632291630945,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 5.016632291630945,
+      "bottleneckThroughputPerSec": 0.14485555566408975,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r2/benchmark/scale_m6_scaling_20260421_032502_n6_r2_20260421_043959/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r2/deploy_metadata.json",
+    "instanceIds": [
+      "i-0c005532c4cedb47e",
+      "i-0cfdc8cd21f89bc70",
+      "i-08127359d276655ec",
+      "i-0d1874740fb889668",
+      "i-01aaa81f741ef8fcc",
+      "i-09a3c107a1d7e5108"
+    ]
+  },
+  {
+    "nodeCount": 6,
+    "repetition": 3,
+    "runTag": "n6_r3",
+    "status": "success",
+    "metrics": {
+      "endToEndMs": 196344,
+      "throughputPerSec": 5.21533634844966,
+      "throughputSource": "endToEnd",
+      "throughputMode": "auto",
+      "endToEndThroughputPerSec": 5.21533634844966,
+      "bottleneckThroughputPerSec": 0.15786088840180731,
+      "workflowItems": 1024,
+      "pagesFetched": 1024,
+      "docs": 10
+    },
+    "benchmarkTimedOut": false,
+    "summaryPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r3/benchmark/scale_m6_scaling_20260421_032502_n6_r3_20260421_044807/summary.json",
+    "deployMetaPath": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r3/deploy_metadata.json",
+    "instanceIds": [
+      "i-0deb2b330a432682f",
+      "i-031d6588c560ad56a",
+      "i-0dd7114d498eb84f9",
+      "i-0d48c92d154b2f2b4",
+      "i-07f2ed674e17aae27",
+      "i-00ded892ae4207d6d"
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-04-21T08:39:59Z",
+  "imageId": "ami-0b6c6ebed2801a5cb",
+  "instanceType": "t3.micro",
+  "keyName": "csci1380",
+  "securityGroup": "sg-09f4146ed85a6feeb",
+  "region": "us-east-1",
+  "workerPort": 8080,
+  "instances": [
+    {"instanceId": "i-0c005532c4cedb47e", "ip": "54.145.111.128", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-0cfdc8cd21f89bc70", "ip": "52.203.60.31", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-08127359d276655ec", "ip": "54.236.169.19", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-0d1874740fb889668", "ip": "107.23.213.200", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-01aaa81f741ef8fcc", "ip": "100.31.250.123", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-09a3c107a1d7e5108", "ip": "52.200.167.76", "port": 8080, "availabilityZone": "us-east-1d"}
+  ],
+  "instanceIds": [
+    "i-0c005532c4cedb47e",
+    "i-0cfdc8cd21f89bc70",
+    "i-08127359d276655ec",
+    "i-0d1874740fb889668",
+    "i-01aaa81f741ef8fcc",
+    "i-09a3c107a1d7e5108"
+  ],
+  "nodes": [
+    {"ip": "54.145.111.128", "port": 8080},
+    {"ip": "52.203.60.31", "port": 8080},
+    {"ip": "54.236.169.19", "port": 8080},
+    {"ip": "107.23.213.200", "port": 8080},
+    {"ip": "100.31.250.123", "port": 8080},
+    {"ip": "52.200.167.76", "port": 8080}
+  ]
+}

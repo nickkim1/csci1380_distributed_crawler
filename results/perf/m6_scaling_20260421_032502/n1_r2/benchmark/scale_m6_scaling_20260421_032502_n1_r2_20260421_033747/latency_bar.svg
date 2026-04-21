@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520">
+  <rect x="0" y="0" width="980" height="520" fill="#fff" />
+  <text x="490" y="32" text-anchor="middle" font-size="24" font-family="Helvetica, Arial, sans-serif" fill="#111">Component Latency</text>
+  <line x1="90" y1="430" x2="960" y2="430" stroke="#ddd" />
+<text x="80" y="434" text-anchor="end" font-size="12" fill="#333">0</text>
+<line x1="90" y1="340" x2="960" y2="340" stroke="#ddd" />
+<text x="80" y="344" text-anchor="end" font-size="12" fill="#333">6581.3119</text>
+<line x1="90" y1="250" x2="960" y2="250" stroke="#ddd" />
+<text x="80" y="254" text-anchor="end" font-size="12" fill="#333">13162.6237</text>
+<line x1="90" y1="160" x2="960" y2="160" stroke="#ddd" />
+<text x="80" y="164" text-anchor="end" font-size="12" fill="#333">19743.9356</text>
+<line x1="90" y1="70" x2="960" y2="70" stroke="#ddd" />
+<text x="80" y="74" text-anchor="end" font-size="12" fill="#333">26325.2474</text>
+  <line x1="90" y1="70" x2="90" y2="430" stroke="#444" />
+  <line x1="90" y1="430" x2="960" y2="430" stroke="#444" />
+  <rect x="106" y="428.1765262184733" width="154.8" height="1.8234737815266748" fill="#f58518" />
+<text x="183.4" y="420.1765262184733" text-anchor="middle" font-size="12" fill="#222">133.3428</text>
+<text x="183.4" y="452" text-anchor="middle" font-size="13" fill="#222">crawler</text>
+<rect x="276.8" y="288.32064776285813" width="154.8" height="141.67935223714184" fill="#f58518" />
+<text x="354.20000000000005" y="280.32064776285813" text-anchor="middle" font-size="12" fill="#222">10360.4</text>
+<text x="354.20000000000005" y="452" text-anchor="middle" font-size="13" fill="#222">indexer</text>
+<rect x="447.6" y="429.60742441317586" width="154.8" height="0.3925755868241447" fill="#f58518" />
+<text x="525" y="421.60742441317586" text-anchor="middle" font-size="12" fill="#222">28.7074</text>
+<text x="525" y="452" text-anchor="middle" font-size="13" fill="#222">storage</text>
+<rect x="618.4000000000001" y="429.9998790332736" width="154.8" height="0.00012096672637979398" fill="#f58518" />
+<text x="695.8000000000001" y="421.9998790332736" text-anchor="middle" font-size="12" fill="#222">0.0088</text>
+<text x="695.8000000000001" y="452" text-anchor="middle" font-size="13" fill="#222">ranking</text>
+<rect x="789.2" y="70" width="154.8" height="360" fill="#f58518" />
+<text x="866.6" y="62" text-anchor="middle" font-size="12" fill="#222">26325.2474</text>
+<text x="866.6" y="452" text-anchor="middle" font-size="13" fill="#222">search</text>
+  <text x="30" y="250" text-anchor="middle" transform="rotate(-90 30 250)" font-size="13" fill="#222">Latency (ms)</text>
+</svg>

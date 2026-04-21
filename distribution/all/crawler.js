@@ -85,6 +85,18 @@ function isBookDetailURL(maybeURL) {
       return /\d/.test(fileName);
     }
 
+    // CSCI1380 sandbox 2 corpus: index linked plain-text book files.
+    if (
+      hostName === "cs.brown.edu" &&
+      pathName.startsWith("/courses/csci1380/sandbox/2/")
+    ) {
+      const fileName = pathName.split("/").pop() || "";
+      if (!fileName || fileName.endsWith("/")) {
+        return false;
+      }
+      return /\.txt$/i.test(fileName);
+    }
+
     return false;
   } catch (_error) {
     return false;
@@ -281,6 +293,9 @@ function crawler(config) {
   function exec(configuration, callback) {
     // Seed URLs are treated as the input dataset for the first MR job.
     const urls = Array.isArray(configuration?.urls) ? configuration.urls : [];
+    const maxDepth = Number.isInteger(configuration?.maxDepth)
+      ? Math.max(0, Number(configuration.maxDepth))
+      : 1;
     const maxPages = Number.isInteger(configuration?.maxPages)
       ? Math.max(1, Number(configuration.maxPages))
       : 200;
@@ -389,7 +404,7 @@ function crawler(config) {
 
           if (crawlDocs.length === 0) {
             crawlStats.fallbackUsed = true;
-            crawlDocs = fallbackCrawl(urls, maxPages);
+            crawlDocs = fallbackCrawl(urls, maxPages, maxDepth);
             crawlStats.fallbackDocs = crawlDocs.length;
           }
 
@@ -445,9 +460,10 @@ function crawler(config) {
      * Fallback local crawl if MR crawl yields no docs.
      * @param {string[]} seedURLs
      * @param {number} pageBudget
+     * @param {number} depthLimit
      * @returns {Array<{key: string, value: {url: string, text: string}}>} docs
      */
-    function fallbackCrawl(seedURLs, pageBudget) {
+    function fallbackCrawl(seedURLs, pageBudget, depthLimit) {
       const queue = [];
       const visited = new Set();
       const docs = [];
@@ -455,7 +471,7 @@ function crawler(config) {
 
       seedURLs.forEach((url) => {
         if (shouldCrawlURL(url) && !visited.has(url)) {
-          queue.push(url);
+          queue.push({ url, depth: 0 });
           visited.add(url);
         }
       });
@@ -465,7 +481,13 @@ function crawler(config) {
         docs.length < pageBudget &&
         crawlStats.pagesFetched < crawlBudget
       ) {
-        const current = queue.shift();
+        const nextItem = queue.shift();
+        const current = nextItem && nextItem.url;
+        const currentDepth = Number(nextItem && nextItem.depth) || 0;
+        if (!current) {
+          continue;
+        }
+
         const html = fetchHTML(current);
         if (!html) {
           continue;
@@ -489,13 +511,15 @@ function crawler(config) {
           });
         }
 
-        const discovered = extractURLs(current, html);
-        for (const next of discovered) {
-          if (!visited.has(next) && shouldCrawlURL(next)) {
-            visited.add(next);
-            queue.push(next);
-            if (visited.size > pageBudget * 10) {
-              break;
+        if (currentDepth < depthLimit) {
+          const discovered = extractURLs(current, html);
+          for (const next of discovered) {
+            if (!visited.has(next) && shouldCrawlURL(next)) {
+              visited.add(next);
+              queue.push({ url: next, depth: currentDepth + 1 });
+              if (visited.size > pageBudget * 10) {
+                break;
+              }
             }
           }
         }

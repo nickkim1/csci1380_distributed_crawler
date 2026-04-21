@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-04-21T08:23:52Z",
+  "imageId": "ami-0b6c6ebed2801a5cb",
+  "instanceType": "t3.micro",
+  "keyName": "csci1380",
+  "securityGroup": "sg-09f4146ed85a6feeb",
+  "region": "us-east-1",
+  "workerPort": 8080,
+  "instances": [
+    {"instanceId": "i-08965ee756a2aca86", "ip": "174.129.128.80", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-08f87c1b78a75181a", "ip": "18.234.202.10", "port": 8080, "availabilityZone": "us-east-1d"},
+    {"instanceId": "i-0ffd199071f9d9d60", "ip": "54.237.228.44", "port": 8080, "availabilityZone": "us-east-1d"}
+  ],
+  "instanceIds": [
+    "i-08965ee756a2aca86",
+    "i-08f87c1b78a75181a",
+    "i-0ffd199071f9d9d60"
+  ],
+  "nodes": [
+    {"ip": "174.129.128.80", "port": 8080},
+    {"ip": "18.234.202.10", "port": 8080},
+    {"ip": "54.237.228.44", "port": 8080}
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-04-21T08:43:24.066Z",
+  "resultDir": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n6_r2/benchmark/scale_m6_scaling_20260421_032502_n6_r2_20260421_043959",
+  "seed": "https://atlas.cs.brown.edu/data/gutenberg/",
+  "gid": "scale_m6_scaling_20260421_032502_n6_r2",
+  "indexGid": "index_scale_m6_scaling_20260421_032502_n6_r2",
+  "runLabel": "n6_r2",
+  "experimentId": "m6_scaling_20260421_032502",
+  "usedCache": false,
+  "cacheFile": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/.cache/m6_benchmark_scale_m6_scaling_20260421_032502_n6_r2.json",
+  "config": {
+    "maxDepth": 1,
+    "maxPages": 10,
+    "workerCount": 3,
+    "basePort": 9361,
+    "coordinatorIp": "127.0.0.1",
+    "coordinatorPort": 13312,
+    "workers": [
+      {
+        "ip": "54.145.111.128",
+        "port": 8080
+      },
+      {
+        "ip": "52.203.60.31",
+        "port": 8080
+      },
+      {
+        "ip": "54.236.169.19",
+        "port": 8080
+      },
+      {
+        "ip": "107.23.213.200",
+        "port": 8080
+      },
+      {
+        "ip": "100.31.250.123",
+        "port": 8080
+      },
+      {
+        "ip": "52.200.167.76",
+        "port": 8080
+      }
+    ],
+    "spawnWorkers": false,
+    "stopWorkers": false,
+    "componentTimeoutMs": 300000,
+    "queryRuns": 4,
+    "storageOps": 50,
+    "rankingRuns": 80,
+    "queryList": [
+      "book summary",
+      "mystery",
+      "history"
+    ]
+  },
+  "crawlIndexSummary": {
+    "docs": 10,
+    "terms": 138864,
+    "pagesFetched": 1024,
+    "crawlMs": 125646,
+    "indexMs": 31147,
+    "indexReadyMs": 173379.531
+  },
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 122.701171875,
+      "throughputPerSec": 8.149881412858347,
+      "samples": 1024,
+      "unit": "pages/s",
+      "timedOut": false
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 3114.7,
+      "throughputPerSec": 0.32105820785308375,
+      "samples": 10,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 30.30799161999952,
+      "throughputPerSec": 32.97592967717869,
+      "samples": 100,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0.009683325005244114,
+      "throughputPerSec": 98144.45637247904,
+      "samples": 80,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 6903.399926750011,
+      "throughputPerSec": 0.14485555566408975,
+      "samples": 4,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "details": {
+    "rankingCandidateUrlsPerRun": 3.675,
+    "endToEndMs": 204121,
+    "workflowItems": 1024,
+    "workflowThroughputPerSec": 5.016632291630945,
+    "workflowLatencyMs": 204121
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-04-21T08:20:06.415Z",
+  "resultDir": "/Users/peterpopescu/classes/csci1380/csci1380_distributed_crawler/results/perf/m6_scaling_20260421_032502/n3_r2/benchmark/scale_m6_scaling_20260421_032502_n3_r2_20260421_041559",
+  "seed": "https://atlas.cs.brown.edu/data/gutenberg/",
+  "gid": "scale_m6_scaling_20260421_032502_n3_r2",
+  "indexGid": "index_scale_m6_scaling_20260421_032502_n3_r2",
+  "partial": false,
+  "components": [
+    {
+      "name": "crawler",
+      "latencyMs": 120.6484375,
+      "throughputPerSec": 8.288544971831898,
+      "samples": 1024,
+      "unit": "pages/s",
+      "timedOut": false
+    },
+    {
+      "name": "indexer",
+      "latencyMs": 4752.5,
+      "throughputPerSec": 0.21041557075223566,
+      "samples": 10,
+      "unit": "docs/s",
+      "timedOut": false
+    },
+    {
+      "name": "storage",
+      "latencyMs": 27.77015618999896,
+      "throughputPerSec": 35.984432414848484,
+      "samples": 100,
+      "unit": "ops/s",
+      "timedOut": false
+    },
+    {
+      "name": "ranking",
+      "latencyMs": 0.007666137500200421,
+      "throughputPerSec": 122998.01512007839,
+      "samples": 80,
+      "unit": "rankings/s",
+      "timedOut": false
+    },
+    {
+      "name": "search",
+      "latencyMs": 13382.12410375,
+      "throughputPerSec": 0.07472637472649797,
+      "samples": 4,
+      "unit": "queries/s",
+      "timedOut": false
+    }
+  ],
+  "crawlIndexSummary": {
+    "docs": 10,
+    "terms": 138864,
+    "pagesFetched": 1024,
+    "crawlMs": 123544,
+    "indexMs": 47525,
+    "indexReadyMs": 190901.574208
+  },
+  "details": {
+    "rankingCandidateUrlsPerRun": 5.1125,
+    "endToEndMs": 247301,
+    "workflowItems": 1024,
+    "workflowThroughputPerSec": 4.140703029910918,
+    "workflowLatencyMs": 247301
+  }
+}
